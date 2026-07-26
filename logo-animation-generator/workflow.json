@@ -1,0 +1,612 @@
+{
+  "name": "logo animations",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f3e40bda-1e8c-4504-89d4-63ccb9652ffc",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "CHATGPT-4O-LATEST"
+        },
+        "text": "=Return the analysis in YAMAL format with the following:\n\nbrand_name: (Name of the brand shown in the image, if visible or inferable).\ncolor_schema:\n -hex: (hex code of each prominent color used)\n  name: (Description name of the color)\nfont_style: (Describe the font family or style used: serif/sans-serif, bold/thin etc.)\nvisual_description: (A full sentence or two summarizing what is seen in the image, ignoring the background)\n\nOnly return the YAML. Do NOT explain or add any other comments\n\n",
+        "imageUrls": "=https://drive.google.com/uc?export=download&id={{ $('Get input logo').item.json['input_logo'].match(/https:\\/\\/drive\\.google\\.com\\/file\\/d\\/([A-Za-z0-9_-]+)/)?.[1] }}\n",
+        "simplify": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        608,
+        0
+      ],
+      "id": "53442d74-d045-4589-ab6d-62de18a447c2",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "5FgvJnDGF5tUyTT3",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Logo animations",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "for production"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        0
+      ],
+      "id": "65f5bd59-f32c-4bfd-90cb-56d7402aa0c5",
+      "name": "Get input logo",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "n6Ev9o1gP8pRTY6A",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=This is the user's Creative Direction:\n{{ $('Your creative direction').item.json.your_creative_direction }}\n\nDescription of the logo:\n{{ $json.choices[0].message.content }}\n***\nThe user's preferred aspect ratio:\n{{ $('Your creative direction').item.json.aspect_ratio }}\n\nThe user's preferred model:\n{{ $('Your creative direction').item.json.model }}\n\nThe user's preferred dialogue script:\n{{ $('Your creative direction').item.json.dialogue }}\n\nUse the Think tool to double check your output\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=system_prompt: |\nTake inspirations from these prompts and get creative:\n\n{{ $json['Amazon Gamer Room'] }},{{ $json['Chewy Pet Supplies'] }},{{ $json['IKEA Prompt'] }},{{ $json['Corona Beach Rave'] }},{{ $json['Jeep Basecamp'] }},{{ $json['Lego Porsche'] }},{{ $json['Louis Vuitton Handbag Reveal'] }},{{ $json['Nike Ad'] }},{{ $json['NYC Skyline'] }},{{ $json['Rimowa Suitcase'] }},{{ $json['StrideX Sneaker Boutique'] }},{{ $json['Tennis Spin'] }},{{ $json['Tesla Showroom'] }}\n\n  ## SYSTEM PROMPT: 🎬 Logo Animation Prompt Generator Agent\n\n  A – Ask:\n  Generate a logo animation video prompt for a brand based on user-provided creative direction.\n  The goal is to produce a valid `full_video_prompt` JSON specification ready to be executed by a video model.\n\n  G – Guidance:\n  role: Creative video director aligned to brand aesthetics\n  output_count: 1\n  character_limit: No limit\n  constraints:\n    - Output must follow the structure of the provided `full_video_prompt` schema.\n    - The `aspect_ratio` must be \"16:9\" or \"9:16\".\n    - The `video_model` must be \"veo3_fast\".\n    - The `video_length` must ALWAYS be 7.8 seconds.\n    - `full_video_prompt` must be a valid, fully stringified JSON containing detailed animation instructions.\n    - If the user does not specify any dialogue, set `\"dialog\"` to `null` by default.\n    - Always include `\"overlay_text\"` for each scene, but set it to `null` unless explicitly specified.\n    - Ensure smooth narrative flow: opening (logo introduction), middle (dynamic buildup), closing (logo settling with emphasis).\n    - MUST include `\"scenes\"` array with precise timing (`start`, `end`), `visual`, `camera`, `sound`, `scene_elements`, `intensity`, `dialog`, and `overlay_text`.\n    - Color values must always use HEX codes with human-readable `\"name\"`.\n    - Include `\"music\"` and `\"brand_colors\"` in the JSON.\n    - Validate that JSON is syntactically correct and stringified properly.\n\n  E – Examples:\n  good_examples:\n    - |\n      {\n        \"aspect_ratio\": \"16:9\",\n        \"video_model\": \"veo3\",\n        \"full_video_prompt\": \"{\n          \\\"brand_name\\\": \\\"brand name here\\\",\n          \\\"overall_style\\\": \\\"pixelized, playful, colorful, youthful\\\",\n          \\\"aspect_ratio\\\": \\\"landscape 16:9\\\",\n          \\\"video_length\\\": 7.8,\n          \\\"background_color\\\": { \\\"hex\\\": \\\"#fce8c5\\\", \\\"name\\\": \\\"light peach\\\" },\n          \\\"background_fill\\\": \\\"full\\\",\n          \\\"music\\\": \\\"cinematic music\\\",\n          \\\"brand_colors\\\": [\n            { \\\"hex\\\": \\\"#ff6600\\\", \\\"name\\\": \\\"bright orange\\\" },\n            { \\\"hex\\\": \\\"#000000\\\", \\\"name\\\": \\\"black\\\" },\n            { \\\"hex\\\": \\\"#ffffff\\\", \\\"name\\\": \\\"white\\\" },\n            { \\\"hex\\\": \\\"#f9c44d\\\", \\\"name\\\": \\\"sunny yellow\\\" }\n          ],\n          \\\"scenes\\\": [\n            {\n              \\\"start\\\": 0.0,\n              \\\"end\\\": 2.2,\n              \\\"starting_frame\\\": \\\"reference_logo_image\\\",\n              \\\"visual\\\": \\\"The flat logo appears immediately, centered in frame with soft pixel flickers.\\\",\n              \\\"camera\\\": \\\"cinematic slow dolly-in with light pixel shake\\\",\n              \\\"sound\\\": \\\"8-bit chime sparkles, soft ambient wind, subtle bounces\\\",\n              \\\"scene_elements\\\": [ \\\"pixel-shaped falling light blocks\\\", \\\"animated glow trails on impact\\\" ],\n              \\\"intensity\\\": 40,\n              \\\"dialog\\\": null,\n              \\\"overlay_text\\\": null\n            },\n            {\n              \\\"start\\\": 6.5,\n              \\\"end\\\": 7.8,\n              \\\"visual\\\": \\\"The logo now floats still and complete, with subtle pixel particles dispersing outward.\\\",\n              \\\"camera\\\": \\\"locked center frame with a slight push-in\\\",\n              \\\"sound\\\": \\\"gentle chime echo, fading into ambient silence\\\",\n              \\\"scene_elements\\\": [ \\\"floating pixel dust\\\", \\\"low glow pulse behind logo\\\" ],\n              \\\"intensity\\\": 20,\n              \\\"dialog\\\": null,\n              \\\"overlay_text\\\": null\n            }\n          ]\n        }\"\n      }\n\n  N – Notation:\n  format: JSON\n  example_output: |\n    {\n      \"aspect_ratio\": \"16:9\",\n      \"video_model\": \"veo3_fast\",\n      \"full_video_prompt\": \"stringified JSON\"\n    }\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -320,
+        240
+      ],
+      "id": "5f971967-26a1-4f00-b582-31a832c1100c",
+      "name": "Initial Prompt AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini-2025-08-07",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini-2025-08-07"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -448,
+        624
+      ],
+      "id": "ccb301ca-3385-4ddf-bc43-0b92eae3bb83",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5FgvJnDGF5tUyTT3",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        -272,
+        432
+      ],
+      "id": "cf3eae03-9526-4ba3-91d3-344844689e95",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n    \n  \"full_video_prompt\": \"stringfied JSON\",\n  \"video_length\": \"7.8 seconds\",\n  \"caption\":\"short caption\",\n  \"aspect_ratio\":  \"16:9 or 9:16\",\n  \"video_model\":\"veo3_fast\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -240,
+        592
+      ],
+      "id": "5f72a37c-a9e8-4d1b-9b28-d51337a70bdf",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ec963b8b-5051-485f-9ec0-a3404c0033e8",
+              "name": "your_creative_direction",
+              "value": "={\n  \"brand_name\": \"Example Brand\",\n  \"overall_style\": \"Elegant, cultural, graceful, and modern fashion-inspired\",\n  \"aspect_ratio\": \"16:9\",\n  \"video_length\": 7.8,\n  \"background_color\": { \"hex\": \"#ffffff\", \"name\": \"white\" },\n  \"background_fill\": \"gradient soft blush to gold\",\n  \"music\": \"traditional Middle Eastern instrumental with modern cinematic blend\",\n  \"brand_colors\": [\n    { \"hex\": \"#C2185B\", \"name\": \"rose pink\" },\n    { \"hex\": \"#000000\", \"name\": \"black\" },\n    { \"hex\": \"#FFD700\", \"name\": \"gold\" }\n  ],\n  \"scenes\": [\n    {\n      \"start\": 0.0,\n      \"end\": 2.5,\n      \"visual\": \"Elegant rose-petal outlines flow in from the edges, softly swirling like silk fabric in the wind.\",\n      \"camera\": \"slow cinematic zoom toward the center\",\n      \"sound\": \"soft chime with fabric rustle\",\n      \"scene_elements\": [\"flowing petals\", \"subtle glowing lines\"],\n      \"intensity\": 30,\n      \"dialog\": null,\n      \"overlay_text\": null\n    },\n    {\n      \"start\": 2.5,\n      \"end\": 5.0,\n      \"visual\": \"The petals merge into geometric rose outlines, revealing the square frame of the logo. Golden threads trace the border elegantly.\",\n      \"camera\": \"steady zoom-in with smooth pan\",\n      \"sound\": \"gentle harp with rising melody\",\n      \"scene_elements\": [\"glowing threads\", \"rose outline sketches\"],\n      \"intensity\": 40,\n      \"dialog\": null,\n      \"overlay_text\": null\n    },\n    {\n      \"start\": 5.0,\n      \"end\": 7.8,\n      \"visual\": \"The 'Example Brand' text appears in graceful calligraphy, glowing rose pink with a golden shimmer. Tagline 'Your Story, Your Style' fades in softly underneath.\",\n      \"camera\": \"locked center frame with subtle push-in\",\n      \"sound\": \"crescendo of strings and soft fade out\",\n      \"scene_elements\": [\"gentle glow pulse\", \"floating petals dispersing outward\"],\n      \"intensity\": 25,\n      \"dialog\": null,\n      \"overlay_text\": null\n    }\n  ]\n}\n",
+              "type": "string"
+            },
+            {
+              "id": "4e5fa485-759a-4d4b-8253-69108601f316",
+              "name": "aspect_ratio",
+              "value": "horizontal ",
+              "type": "string"
+            },
+            {
+              "id": "91194ea2-e517-4a6d-a62e-1f8e44def063",
+              "name": "model",
+              "value": "veo_fast",
+              "type": "string"
+            },
+            {
+              "id": "3eadf31a-8a0e-4663-9aac-93feeabff976",
+              "name": "dialogue",
+              "value": "no voiceover please",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "1ec3eee6-b5e0-4dad-972c-4237b034591f",
+      "name": "Your creative direction"
+    },
+    {
+      "parameters": {
+        "amount": 250
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        240
+      ],
+      "id": "799c6fed-7dca-4a81-8151-92eeff43db6c",
+      "name": "Wait veo",
+      "webhookId": "a9020316-90a4-472a-9ee4-2df4edd98d26"
+    },
+    {
+      "parameters": {
+        "url": "https://api.kie.ai/api/v1/veo/record-info",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "taskId",
+              "value": "={{ $json.data.taskId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        416,
+        240
+      ],
+      "id": "48933be2-3305-4120-85e1-6f4a091e7bca",
+      "name": "GET veo",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "b8BmJ0WXFpwSUQgX",
+          "name": "Kie AI Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/veo/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": {{ $json.output.full_video_prompt }},\n  \"model\": \"{{ $json.output.video_model }}\",\n  \"aspectRatio\": \"{{ $json.output.aspect_ratio }}\",\n  \"imageUrls\": \"https://drive.google.com/uc?export=download&id={{ $('Get input logo').item.json['input_logo'].match(/https:\\/\\/drive\\.google\\.com\\/file\\/d\\/([A-Za-z0-9_-]+)/)?.[1] }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        16,
+        240
+      ],
+      "id": "f796da0e-71c7-46d9-b567-34b51acaa6cf",
+      "name": "Create veo4",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "b8BmJ0WXFpwSUQgX",
+          "name": "Kie AI Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Logo animations",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Get input logo').item.json.id }}",
+            "status": "done",
+            "output": "={{ $json.data.response.resultUrls[0] }} ",
+            "input_logo": "={{ $('Get input logo').item.json.input_logo }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "input_logo",
+              "displayName": "input_logo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        608,
+        240
+      ],
+      "id": "fb0e7a0c-5a0e-4871-98bf-637eb21a272a",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "n6Ev9o1gP8pRTY6A",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9ea3f6e3-e3de-45d5-955d-925cc59a22ff",
+              "name": "Amazon Gamer Room",
+              "value": " metadata:   prompt_name: \"Amazon Empty Room Assembly\"   base_style: \"cinematic, photorealistic, 4K\"   aspect_ratio: \"16:9\"   room_description: \"An empty, large, sunlit Scandinavian room with white walls and light wood floors.\"   camera_setup: \"A single, fixed, wide-angle shot. The camera does not move for the entire 8-second duration.\"   key_elements:     - \"A sealed Amazon box with logo visible\"   assembled_elements:     - \"bed with dark blue duvet\"     - \"blue throw blanket\"     - \"metal table\"     - \"neon lamps\"     - \"wardrobe\"     - \"shelves\"     - \"gamer PC\"     - \"Gamer monitor and keyboard\"     - \"rug\"     - \"curtains\"     - \"gamer headsets\"   negative_prompts: [\"no people\", \"no text overlays\", \"no distracting music\"]   timeline:     - sequence: 1       timestamp: \"00:00-00:01\"       action: \"In the center of the otherwise empty room, a sealed Amazon box sits on the floor and begins to tremble gently.\"       audio: \"Low, subtle rumbling sound. The echo of a large, empty room.\"     - sequence: 2       timestamp: \"00:01-00:02\"       action: \"The box seams burst open with a puff of cardboard dust.\"       audio: \"A sharp 'POP' sound, followed by tearing cardboard.\"     - sequence: 3       timestamp: \"00:02-00:06\"       action: \"Hyper-lapse: From the fixed wide perspective, furniture pieces fly out of the box and assemble themselves, creating all the items from the 'assembled_elements' list.\"       audio: \"A cascade of satisfying, fast-paced ASMR sounds: whirring, clicking, wood snapping into place.\"     - sequence: 4       timestamp: \"00:06-00:08\"       action: \"The final piece—the blue throw blanket—gracefully lands on the newly formed bed. The room is now perfectly furnished and serene. All motion ceases.\"       audio: \"All chaotic sounds stop. A single, soft 'fwoomp' as the blanket lands. The sound of a furnished, quiet room.\"",
+              "type": "string"
+            },
+            {
+              "id": "898512c7-57e2-4b44-b651-6b28a1abaac7",
+              "name": "Chewy Pet Supplies",
+              "value": "= {   \"description\": \"Cinematic shot of a sunlit, empty kitchen. A sealed Chewy box sits in the center. It trembles, explodes open in one burst, and pet supplies rapidly assemble into place: food and water bowls, a dog bed, toys, and a bag of food. A dog runs in and flops into the bed. No text.\",   \"style\": \"cinematic\",   \"camera\": \"fixed wide angle\",   \"lighting\": \"natural warm with soft shadows\",   \"room\": \"modern kitchen with hardwood floors\",   \"elements\": [     \"Chewy box (logo visible)\",     \"dog food and water bowls\",     \"dog bed\",     \"dog toys (rope, ball, bone)\",     \"bag of dog food\",     \"wall hook with leash\",     \"dog (golden retriever)\"   ],   \"motion\": \"box explodes open, dog items fly out and assemble rapidly and precisely\",   \"ending\": \"dog enters and settles happily into the bed\",   \"text\": \"none\",   \"keywords\": [     \"16:9\",     \"Chewy\",     \"pet supplies\",     \"fast assembly\",     \"dog\",     \"no text\",     \"warm lighting\"   ] }",
+              "type": "string"
+            },
+            {
+              "id": "99ece073-a6e3-469f-ad81-2ae006ed9bed",
+              "name": "IKEA Prompt",
+              "value": "={   \"description\": \"Cinematic shot of a sunlit Scandinavian bedroom. A sealed IKEA box trembles, opens, and flat pack furniture assembles rapidly into a serene, styled room highlighted by a yellow IKEA throw on the bed. No text.\",   \"style\": cinematic\",   \"camera\": \"fixed wide angle\",   \"lighting\": \"natural warm with cool accents\",   \"room\": \"Scandinavian bedroom\",   \"elements\": [     \"IKEA box (logo visible)\",     \"bed with yellow throw\",     \"bedside tables\",     \"lamps\",     \"wardrobe\",     \"shelves\",     \"mirror\",     \"art\",     \"rug\",     \"curtains\",     \"reading chair\",     \"plants\"   ],   \"motion\": \"box opens, furniture assembles precisely and rapidly\",   \"ending\": \"calm, modern space with yellow IKEA accent\",   \"text\": \"none\",   \"keywords\": [     \"16:9\",     \"IKEA\",     \"Scandinavian\",     \"fast assembly\",     \"no text\",     \"warm & cool tones\"   ] }",
+              "type": "string"
+            },
+            {
+              "id": "ac8f84ab-bc0c-452b-bb26-8e0379674f87",
+              "name": "Corona Beach Rave",
+              "value": "{ \"description\": \"Cinematic close-up of a cold, dewy Corona bottle sitting alone on a weathered beach table. It begins to hum, vibrate. The bottle cap *pops*—and the entire environment unfolds from inside: palm trees rise, lights string themselves, speakers assemble mid-air, sand shifts into a dance floor. A DJ booth builds from driftwood. Music kicks in. A beach rave is born. No text.\",   \"style\": \"cinematic, magical realism\", \"camera\": \"starts ultra close, zooms out and cranes overhead as the world expands\", \"lighting\": \"sunset turning to neon—golden hour into party glow\", \"environment\": \"quiet beach transforms into high-energy beach rave\", \"elements\": [ \"Corona bottle (label visible, condensation dripping)\", \"pop-top cap in slow motion\", \"exploding citrus slice\", \"sand morphing into dance floor\", \"palm trees rising\", \"neon lights snapping on\", \"DJ booth building itself\", \"crowd materializing mid-dance\", \"fire pit lighting\", \"surfboards as signage\"], \"motion\": \"explosion of elements from bottle, everything assembles in rapid time-lapse\", \"ending\": \"Corona bottle in foreground, beach rave in full swing behind it\", \"text\": \"none\", \"keywords\": [\"Corona\", \"beach party\", \"bottle transforms\", \"rave build\", \"sunset to night\", \"cinematic\", \"no text\" ] }",
+              "type": "string"
+            },
+            {
+              "id": "c32e2dc8-5dfd-48a3-9420-812477e54472",
+              "name": "Jeep Basecamp",
+              "value": " {   \"description\": \"Epic cinematic shot in a wild, remote landscape. A rugged, mechanical expedition crate splits open, its panels unfolding to reveal a fully-equipped Jeep Wrangler Rubicon at the center of an adventure-ready basecamp at sunset.\",   \"style\": \"cinematic, gritty, realistic, epic\",   \"camera\": \"medium wide shot, steady, with a slow push-in as the vehicle is revealed\",   \"lighting\": \"dramatic golden hour, long shadows, lens flare, warm functional light from the camp gear\",   \"location\": \"Moab desert canyon at sunset\",   \"elements\": [     \"Jeep Wrangler Rubicon (dirty, mud-splattered)\",     \"mechanical unfolding crate with Jeep logo\",     \"rooftop tent (already deployed)\",     \"glowing LED camp lights\",     \"a few solar panels\",     \"durable camping chairs\",     \"dust and grit in the air\"   ],   \"motion\": \"The crate's panels mechanically unlock and fold outward with audible clicks, revealing the Jeep within. Dust gently swirls from the movement.\",   \"ending\": \"A stunning, adventure-ready scene with the rugged Jeep as the hero, ready for exploration.\",   \"text\": \"none\",   \"keywords\": [     \"4k\", \"hyperrealistic\", \"Jeep\", \"reveal\", \"adventure\",     \"off-road\", \"basecamp\", \"rugged\", \"golden hour\", \"cinematic\", \"no people\", \"unfolding crate\"   ] }",
+              "type": "string"
+            },
+            {
+              "id": "bca095e4-8437-4aaf-bdce-728d438b1606",
+              "name": "Lego Porsche",
+              "value": " {   \"description\": \"Photorealistic cinematic shot of a modern kitchen island at sunset. A sealed box of LEGO Porsche 911 Turbo and 911 Targa trembles, bursts open, and hundreds of glossy white, black, and orange LEGO pieces fly into the air and rapidly assemble into a sleek Porsche 911 model with detailed headlights, curved fenders, and an opening trunk. No text.\",   \"style\": \"photorealistic cinematic\",   \"camera\": \"smooth dolly shot transitioning from a close-up of the box to a wide shot of the car assembling\",   \"lighting\": \"warm sunset glow with soft ambient shadows\",   \"room\": \"modern kitchen with marble countertops, minimal appliances, and wooden bar stools\",   \"elements\": [     \"LEGO Porsche 911 Turbo and Targa box (Porsche logo visible)\",     \"white, black, and orange LEGO pieces\",     \"sleek 911 body with headlights and taillights\",     \"detailed interior with steering wheel and dashboard\",     \"removable roof panel for Targa mode\",     \"LEGO driver minifigure in racing outfit\",     \"tiny tools and tire set on the countertop\"   ],   \"motion\": \"box rattles and lid bursts open, bricks spin and lock into place mid-air to form the Porsche, headlights flicker on, and the roof panel clicks into position\",   \"ending\": \"a fully assembled Porsche 911 glistens under the sunset light on the countertop, angled as if ready to drive\",   \"text\": \"none\",   \"keywords\": [     \"16:9\", \"LEGO Porsche\", \"fast assembly\", \"photorealistic\", \"sunset lighting\", \"detailed car model\"   ] }",
+              "type": "string"
+            },
+            {
+              "id": "45d6dc07-9d82-44b7-9ff8-a8b9353a8a39",
+              "name": "Louis Vuitton Handbag Reveal",
+              "value": " {   \"description\": \"Fixed wide-angle cinematic shot of a dark velvet surface under soft spotlight. A golden monogram LV logo shimmers midair, suspended above the surface. It begins to disassemble into thousands of tiny gold threads, which flow downward like liquid embroidery. The threads weave themselves into a detailed silhouette of a Louis Vuitton handbag. As the final stitch completes, the bag rises gently upright, its leather glowing, monogram pattern subtly embossed. A gold zipper glides open on its own, revealing a soft interior glow. No text.\",   \"style\": \"cinematic, luxurious, elegant\",   \"camera\": \"fixed wide angle\",   \"lighting\": \"moody spotlight with warm golden highlights and gentle falloff\",   \"environment\": \"black velvet tabletop with soft shadows and refined texture\",   \"elements\": [     \"gold LV monogram logo\",     \"golden embroidery threads\",     \"Louis Vuitton handbag silhouette\",     \"glowing leather texture\",     \"gold zipper movement\",     \"interior light reveal\"   ],   \"motion\": {     \"type\": \"logo-to-thread-to-object\",     \"details\": \"LV logo dissolves into gold threads, threads form bag, bag opens\"   },   \"ending\": \"The completed LV bag rests in the center, glowing softly. The camera holds for a moment, then fades to black. No text.\",   \"audio\": {     \"voice_over\": \"none\",     \"music\": \"subtle cinematic string swell with harp accents\",     \"sfx\": \"gentle thread weaving sounds, leather flexing, zipper slide\"   },   \"text_overlay\": \"none\",   \"format\": \"16:9\",   \"keywords\": [     \"Louis Vuitton\", \"luxury fashion\", \"handbag reveal\", \"embroidery transformation\", \"elegance\", \"cinematic branding\"   ] }",
+              "type": "string"
+            },
+            {
+              "id": "9a0a3de4-44ae-40b5-9ff1-f834e554149e",
+              "name": "Nike Ad",
+              "value": "{ \"description\": \"Hyper-stylized cinematic sequence inside a dark, misty urban basketball court at night. A closed Nike shoebox levitates, spins, and explodes into a vortex of sneaker parts. As a pair of glowing Air Jordans assembles mid-air, a character steps through smoke, lip-syncing a bold one-liner directly to camera as the shoes lock onto their feet with a kinetic blast.\", \"style\": \"stylized cinematic with light surreal VFX\", \"camera\": { \"type\": \"dynamic Steadicam and crane combo\", \"movement\": \"slow crane-down into rotating dolly move, then sudden handheld push-in during lip sync\", \"lens\": \"28mm for immersive wide-angle distortion during transformation\" }, \"lighting\": { \"type\": \"high-contrast urban night lighting\", \"sources\": \"overhead flickering halogen, bounce from wet pavement, rim lights from behind mist\", \"FX\": \"volumetric fog, sharp reflections on asphalt\" }, \"scene\": { \"location\": \"open-air industrial basketball court at night\", \"set_pieces\": [ \"chain-link fencing backlit by headlights\", \"wet pavement with puddle reflections\", \"floating Nike shoebox with visible swoosh\", \"slowly rising ambient smoke\" ] }, \"subject\": { \"character\": { \"description\": \"young adult, athletic build, platinum buzzcut, black techwear hoodie\", \"pose\": \"walks forward confidently, looking into camera, lips sync perfectly to voiceover\", \"lip_sync_line\": \"\\\"This ain’t style. This is power.\\\"\" }, \"shoes\": { \"brand\": \"Nike Air Jordan\", \"action\": \"shoebox explodes in slow motion, parts vortex upward, assemble in mid-air with glow FX, rotate once before flying onto character’s feet with a shockwave ripple\" } }, \"VFX\": { \"transformation\": \"slow-mo sneaker parts form with neon edge trails and motion blur\", \"shockwave\": \"circular distortion ripple on impact\", \"particles\": \"tiny swoosh-shaped embers drift through air post-transformation\", \"environment\": \"puddle reacts to energy with ripple sync\" }, \"motion\": \"shoes self-assemble mid-air with orbital motion; camera swings 180° as character lip-syncs; final zoom snap-in on Nike swoosh as shoes land and light flares\", \"sound_design\": { \"ambience\": \"distant traffic hum, echoing court reverb\", \"FX\": [ \"shoebox low-end bass hum + snap-pop explosion\", \"orbital shoe assembly with layered *whoosh-ping* glides\", \"impact blast with muffled shockwave\", \"shoelaces zip in with rising tension cue\" ], \"voiceover\": { \"delivery\": \"confident, clean baritone, slightly reverbed\", \"line\": \"\\\"This ain’t style. This is power.\\\"\" }, \"music\": \"hard-hitting trap beat with glitched snares and deep sub-bass swell during climax\" }, \"ending\": \"Character stands on lit court, Air Jordans glowing faintly. Camera orbit freeze-frames as logo tag pulses briefly onscreen.\", \"text\": \"optional logo pulse at end only\", \"keywords\": [ \"Nike\", \"Air Jordan\", \"product transformation\", \"stylized VFX\", \"lip sync\", \"basketball court\", \"power statement\", \"cinematic advertising\", \"shockwave impact\", \"trap beat\" ] }",
+              "type": "string"
+            },
+            {
+              "id": "f648c3e3-5a3f-4db7-987c-cbc282a9be2e",
+              "name": "NYC Skyline",
+              "value": "metadata: prompt_name: \"NYC City Assembly\" base_style: \"cinematic, photorealistic, 4K\" aspect_ratio: \"16:9\" city_description: \"A vast, empty urban plaza at dawn, ground level view with concrete pavement stretching into the mist.\" camera_setup: \"A single, fixed, wide-angle shot. The camera holds its position for the entire 8-second duration.\" key_elements: - \"A sealed steel shipping container stamped with 'NYC' in bold letters\" assembled_elements: - \"iconic Manhattan skyscrapers (e.g., Empire State Building, Chrysler Building)\" - \"Brooklyn Bridge arching into frame\" - \"yellow taxi cabs lined up along a street\" - \"hydrant and classic black street lamps\" - \"subway entrance staircase with MTA sign\" - \"Statue of Liberty’s torch and crown silhouette\" - \"Central Park trees emerging in the background\" - \"water towers perched on rooftop structures\" - \"billboard frames and neon signs\" - \"sidewalk café tables and chairs full of people\" negative_prompts: [\"no text overlays\", \"no overt graphics\"]  timeline: - sequence: 1 timestamp: \"00:00-00:01\" action: \"In the center of the barren plaza sits the sealed NYC container. It begins to tremble as light fog swirls around it.\" audio: \"Deep, resonant rumble echoing across empty concrete.\"  - sequence: 2 timestamp: \"00:01-00:02\" action: \"The container’s steel doors burst open outward, releasing a spray of mist and loose rivets.\" audio: \"Sharp metallic clang, followed by hissing steam.\"  - sequence: 3 timestamp: \"00:02-00:06\" action: \"Hyper-lapse: From the fixed vantage, city elements rocket out of the container and lock into place—steel beams rise, glass facades snap on, bridges span into view, and yellow taxis line up automatically.\" audio: \"A rapid sequence of ASMR city-building sounds: metal clanks, glass sliding, cables snapping, engines revving softly.\"  - sequence: 4 timestamp: \"00:06-00:08\" action: \"The final element—a single yellow taxi—glides forward and parks beside the newfound curb. All motion freezes as morning light bathes the fully formed New York Cityscape.\" audio: \"A soft engine cut-off 'chug,' then the distant hum of awakening city traffic, fading into serene dawn silence.\"",
+              "type": "string"
+            },
+            {
+              "id": "c5fd7858-5773-4e6e-b087-2b0dffd6fc6c",
+              "name": "Rimowa Suitcase",
+              "value": " {   \"description\": \"Cinematic editorial shot of an upright transparent suitcase in a plain white cyclorama studio. A burst of yellow mist fills the suitcase as it spins rapidly, transforming mid-spin into a solid yellow hard-shell suitcase. The camera pushes in smoothly before holding on the final form.\",   \"style\": \"editorial cinematic\",   \"camera\": \"precision dolly-in from 2.5m to 1.5m over 5 seconds, then static hero shot\",   \"lighting\": \"clean, soft, and even—no visible light sources or reflections; lighting wraps naturally with minimal shadowing\",   \"room\": \"plain infinite white cyclorama (no texture, no visible lights, seamless floor-to-wall transition)\",   \"elements\": [     \"transparent upright suitcase\",     \"volumetric yellow mist\",     \"solid yellow hard-shell suitcase with ribbed structure\",     \"chrome latches and telescopic handle\",     \"soft reflective white floor\",     \"faint lingering mist at base\"   ],   \"motion\": \"yellow mist violently fills the suitcase in under 2s; suitcase spins upright on vertical axis and transforms mid-spin into solid yellow shell; spin halts cleanly; camera push-in and hold\",   \"ending\": \"suitcase stops mid-frame in bold yellow form; mist dissipates; fade to white\",   \"text\": \"none\",   \"keywords\": [     \"editorial\", \"product transformation\", \"white cyclorama\", \"clean studio\", \"yellow mist\", \"no text\", \"no humans\", \"4K\", \"minimalist\"   ] }",
+              "type": "string"
+            },
+            {
+              "id": "89726186-cc9b-44db-a5d9-fee0ba0f599a",
+              "name": "StrideX Sneaker Boutique",
+              "value": "description: \"Urban sneaker boutique at night. A sealed StrideX shoe box rattles, shoots open, and neon-accented sneakers hover, self-lacing mid-air. They sprint on a treadmill of light and freeze in a hero pose.\" style: high-energy commercial camera: handheld whip-pan lighting: dynamic neon blues and magentas room: industrial retail space with concrete floor elements:  - \"StrideX box (logo glowing)\"  - \"self-lacing sneakers\"  - \"holographic treadmill\"  - \"LED floor grid\" motion: \"box explodes open, sneakers hover, tie laces, sprint, stop sharply\" ending: \"sneakers land on pedestal under spotlight\" text: none keywords:  - \"9:16\"  - \"sneakers\"  - \"neon\"  - \"motion freeze\"  - \"no text\"",
+              "type": "string"
+            },
+            {
+              "id": "2c76e5d5-fec8-4d7b-a47b-579d827cea93",
+              "name": "Tennis Spin",
+              "value": "{   \"description\": \"A hyper-real macro tennis ball sits against a black background. It slowly cracks open like a shell to reveal a surreal spherical interior: a miniature curved clay court embedded within the felt-lined shell. A female tennis player stands centered in the middle third.\",   \"style\": \"editorial realism\",   \"camera\": \"macro static → pivot and dolly-in → lateral tracking to follow spinning ball\",   \"lighting\": \"soft top-down editorial lighting with curved, tactile shadows\",   \"scene\": \"interior of a spherical tennis ball with a warped clay court and surreal sportscape\",   \"elements\": [     \"matte neon-green tennis ball\",     \"white seam detail\",     \"shell-style lid opening upward\",     \"miniature curved clay court\",     \"floating net\",     \"curved fencing and ambient lights\",     \"female tennis player centered in middle third\",     \"green felt-lined interior shell\",     \"spinning tennis ball flying into right third\",     \"macro ball exterior reforming at end\"   ],   \"motion\": \"ball cracks open → camera glides in → player strikes ball with grunt → ball spins toward lens → rotates into original macro position\",   \"ending\": \"loop resolves with ball closing seamlessly into its original macro form, same angle and lighting\",   \"audio\": \"no text, only ambient sound and sharp player grunt on impact\" }",
+              "type": "string"
+            },
+            {
+              "id": "bbbe9173-3fe1-4ec2-bdcf-c7a775f5cc73",
+              "name": "Tesla Showroom",
+              "value": "{   \"description\": \"Cinematic shot of a minimalist Tesla-branded crate magically opening to reveal a fully formed Tesla vehicle and an instantly assembled, sleek Tesla-themed showroom around it. No text.\",   \"style\": \"cinematic\",   \"camera\": \"fixed wide angle, with subtle zooms on key transformations\",   \"lighting\": \"controlled, high-tech, transitioning from dim to bright and clean\",   \"room\": \"empty futuristic space transforming into a minimalist Tesla showroom\",   \"elements\": [     \"Tesla-branded crate (glowing seams)\",     \"Tesla vehicle (e.g., Model 3/Y/Cybertruck)\",     \"charging station\",     \"minimalist display panels\",     \"sleek showroom furniture\",     \"ambient lighting elements\"   ],   \"motion\": \"crate panels retract smoothly and silently, car revealed, showroom elements rise/unfold precisely and rapidly\",   \"ending\": \"pristine, inviting Tesla showroom with car as centerpiece\",   \"text\": \"none\",   \"keywords\": [     \"16:9\",     \"Tesla\",     \"magic assembly\",     \"showroom\",     \"innovation\",     \"futuristic\",     \"no text\",     \"clean design\",     \"reveal\"   ] }",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -544,
+        240
+      ],
+      "id": "11312b0b-9080-484b-a42e-93de2954f9f7",
+      "name": "Inspirations"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Your creative direction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get input logo": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Initial Prompt AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Initial Prompt AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Initial Prompt AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Inspirations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Your creative direction": {
+      "main": [
+        [
+          {
+            "node": "Get input logo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial Prompt AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create veo4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait veo": {
+      "main": [
+        [
+          {
+            "node": "GET veo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create veo4": {
+      "main": [
+        [
+          {
+            "node": "Wait veo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET veo": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inspirations": {
+      "main": [
+        [
+          {
+            "node": "Initial Prompt AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "282f7b87-7b9e-4a7b-9c17-0bc7f0b9b512",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ccc44dbde86fe436840d8c65ec0aef1e6eb8ad8713f0a7d233dfa91e88c042aa"
+  },
+  "id": "ghYWPcrvp916dTRl",
+  "tags": []
+}
