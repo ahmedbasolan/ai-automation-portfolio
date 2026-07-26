@@ -42,4 +42,4 @@ The approval step matters: nothing renders (which costs time and generation cred
 
 ## Notes on this repo
 
-No hardcoded external IDs were found in this workflow beyond dynamic Telegram chat references (`{{ $json.message.from.id }}`), which are resolved at runtime, not static values — nothing to sanitize here. You'll need your own Telegram bot token and OpenAI/Veo3 credentials configured in n8n to run it.
+Telegram chat references are resolved at runtime via expressions, not static values. The original export did have a live Telegram bot token hardcoded directly into a couple of URLs — that's been replaced with `YOUR_TELEGRAM_BOT_TOKEN`. You'll need your own Telegram bot token and OpenAI/Veo3 credentials configured in n8n to run it.
