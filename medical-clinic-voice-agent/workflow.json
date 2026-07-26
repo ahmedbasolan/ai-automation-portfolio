@@ -1,0 +1,372 @@
+{
+  "name": "Dentist Voice Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "YOUR_WEBHOOK_PATH",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        432,
+        -80
+      ],
+      "id": "9303595e-5185-4e6d-ac27-16e079f77de3",
+      "name": "webhook_trigger",
+      "webhookId": "YOUR_WEBHOOK_PATH"
+    },
+    {
+      "parameters": {
+        "resource": "calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "your_calendar_id@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Ahmed's"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start_Time', `The start timestamp for the dental appointment.`, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End_Time', `The end time will always be the Start Time plus 1 hour.`, 'string') }}",
+        "options": {
+          "timezone": {
+            "__rl": true,
+            "value": "Asia/Dubai",
+            "mode": "list",
+            "cachedResultName": "Asia/Dubai"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        912,
+        208
+      ],
+      "id": "c0f4b4d5-87c6-4114-a6cd-531529f3eb1b",
+      "name": "get_availability",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "rQFW7M9zlDloja7L",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        768,
+        208
+      ],
+      "id": "ab04c55a-16db-421d-b95a-ced013d1a236",
+      "name": "think"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "your_calendar_id@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Ahmed's"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', `Start time for the dental appointment. You should assume this is a central timezone timestamp (CST).`, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', `End time for the dental appointment. This should be 1 hour AFTER the start time. This will be in the Central Time Zone (CST).`, 'string') }}",
+        "additionalFields": {
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', 'The title/summary of this event should be in the format of \"Dental Appointment | {patient_name}\" where `patient_name` is the provided name of the patient.', 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1056,
+        208
+      ],
+      "id": "f0460013-d424-432f-878b-2c17546cdc75",
+      "name": "create_appointment",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "rQFW7M9zlDloja7L",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1248,
+        -80
+      ],
+      "id": "cbb37d20-5878-4684-9991-76c1e9830880",
+      "name": "respond_to_webhook"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## Request Data\n\n{{ JSON.stringify($json.body, null, 2)}}\n",
+        "options": {
+          "systemMessage": "=## Role\n\nYou are an AI agent responsible for handling back office operations at the dental office **\"Example Dental Clinic\"**. You must make a decision about the data you receive and make a call into the appropriate tool in order to process this request and return the appropriate data necessary.\n\nYou should look at the provided `tool` value in the request body to help decide which tool to use.\n\nPay close attention to the constraints for number of times a tool is able to be used.\n\nYou have secure access to the following internal tools:\n\n* `think` → you MUST use this to think carefully about how to handle the provided request data. This tool must be used on every turn and tool call interaction.\n* `get_availability` → returns true/false availability on the Dental Office Calendar for the given start timestamp in **GST (Gulf Standard Time, GMT+4)**. **For availability requests, you MUST call this tool multiple times to find AT LEAST 2 available timeslots if they exist.**\n* `create_appointment` → creates a **1-hour appointment event** for the provided start time. This tool may only be called **ONCE** per request. If you use it more than once, the task will be considered a FAILURE.\n* `log_patient_details` → logs the provided call details and patient information to a Google Sheet. This should ONLY be called once per request — after all information (patient name, insurance provider, and any questions/concerns) is gathered.\n\n---\n\n## Special Instructions for `get_availability` Tool\n\nWhen handling availability requests:\n\n1. **Always aim to return 2 available timeslots** when possible.  \n2. **Call `get_availability` multiple times** to check different time slots on the requested date.  \n3. **Search strategy:**\n   * Start with the requested time (if provided).\n   * If unavailable, check nearby times in 30-minute or 1-hour increments.\n   * Check both earlier and later times.\n   * Continue checking until you find 2 available slots or exceed 8 total checks, or reach outside business hours (8:00 AM–5:00 PM GST).\n4. **Convert all user-provided times** into ISO 8601 format with `+04:00` timezone offset before tool use.\n5. **Response format:**\n   ```json\n   {\n     \"availableSlots\": [\n       \"2024-01-15T10:00:00+04:00\",\n       \"2024-01-15T11:30:00+04:00\"\n     ]\n   }"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        736,
+        -80
+      ],
+      "id": "ca8384c1-b4b1-4cac-b7fd-aed2b095d6dc",
+      "name": "dental_agent"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "my tasks",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 569756928,
+          "mode": "list",
+          "cachedResultName": "Tasks",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=569756928"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Patient Name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Patient_Name', ``, 'string') }}",
+            "Insurance Provider": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Insurance_Provider', ``, 'string') }}",
+            "Questions & Concerns": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Questions___Concerns', ``, 'string') }}",
+            "Appointment Timestamp": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Appointment_Timestamp', ``, 'string') }}",
+            "Call Timestamp": "={{ $now.toString() }}"
+          },
+          "matchingColumns": [
+            "Patient Name"
+          ],
+          "schema": [
+            {
+              "id": "Call Timestamp",
+              "displayName": "Call Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Patient Name",
+              "displayName": "Patient Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Insurance Provider",
+              "displayName": "Insurance Provider",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Questions & Concerns",
+              "displayName": "Questions & Concerns",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Appointment Timestamp",
+              "displayName": "Appointment Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.6,
+      "position": [
+        1216,
+        208
+      ],
+      "id": "5fd36d19-d148-4666-8e6a-ac176bcd9818",
+      "name": "log_patient_details",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "n6Ev9o1gP8pRTY6A",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.headers }}",
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        208
+      ],
+      "id": "3243fc07-d5c8-49aa-b538-f1af0558d188",
+      "name": "simple-memory"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.2-chat-latest",
+          "mode": "list",
+          "cachedResultName": "gpt-5.2-chat-latest"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        176
+      ],
+      "id": "a1618e56-14ef-405b-b8eb-96211b8efea6",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5FgvJnDGF5tUyTT3",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "webhook_trigger": {
+      "main": [
+        [
+          {
+            "node": "dental_agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_availability": {
+      "ai_tool": [
+        [
+          {
+            "node": "dental_agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "think": {
+      "ai_tool": [
+        [
+          {
+            "node": "dental_agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_appointment": {
+      "ai_tool": [
+        [
+          {
+            "node": "dental_agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "dental_agent": {
+      "main": [
+        [
+          {
+            "node": "respond_to_webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "log_patient_details": {
+      "ai_tool": [
+        [
+          {
+            "node": "dental_agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "simple-memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "dental_agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "dental_agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b62ede5b-c6ae-4417-9fd8-c662ac85e286",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ccc44dbde86fe436840d8c65ec0aef1e6eb8ad8713f0a7d233dfa91e88c042aa"
+  },
+  "id": "akqfgtu7oBVnRGoL",
+  "tags": []
+}
