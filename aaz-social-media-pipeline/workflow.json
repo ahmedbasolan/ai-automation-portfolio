@@ -1,0 +1,1158 @@
+{
+  "name": "aaz Social media uploads",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "=Return the analysis in JSON format with the following:\n\nAnalyze this Canva-generated image of gold jewellery. Based only on the visual content:\n\n1. Identify the type of jewellery (e.g., ring, bracelet, necklace).\n2. Briefly describe the design style (e.g., minimal, floral, modern, bold).\n3. Write a short, emotionally engaging caption (1–2 lines max).\n4. Generate 5 lowercase hashtags for jewellery lovers in the UAE. Include Arabic where visually fitting.\n\nAlways return a **valid JSON object with exactly these keys**\n\ntype: \"detected jewellery type\"\nstyle: \"visual style description\"\ncaption: \"caption\"\nhashtags:\n  - \"#uaejewellery\"\n  - \"#goldring\"\n  - \"#مجوهرات_دبي\"\n  - \"... up to 5\"\n\nDo NOT explain or add any other comments",
+        "imageUrls": "={{$node[\"post image\"].json[\"secure_url\"]}}\n",
+        "simplify": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        368
+      ],
+      "id": "ca57849a-b5ad-4896-a397-0a8b94980f97",
+      "name": "Analyze image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "cCx8YhG6IL2PJuWt",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You will be shown an image of gold jewellery created in Canva.\n\nBrand name: the brand (a UAE gold jewellery retailer)\n\nUsing the AGENT framework:\n\n- Action: Create a post for Instagram, Facebook, and TikTok.\n- Goal: Capture attention and emotionally connect with premium jewellery buyers in the UAE.\n- Execution: Analyze the image and generate:\n  1. The type of jewellery (ring, necklace, bracelet, etc.)\n  2. The visual style (e.g. floral, modern, minimal, bold)\n  3. A short, scroll-stopping caption (1–2 lines)\n  4. 15-20 lowercase hashtags that are UAE-relevant for maximum outreach, including Arabic tags if appropriate.\n\n- Nuance: Reflect elegance, luxury, and handcrafted beauty. The tone should feel aspirational yet culturally aware.\n\n- Tone: Minimal, confident, emotional.\n\nUse the Think tool to double check your output\n\n\nUse analyze image node to understand\n{{ $json.candidates[0].content.parts[0].text }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a luxury social media strategist for a high-end jewellery brand based in the UAE named the brand (a UAE gold jewellery retailer). \nYour job is to help generate emotionally compelling and visually aligned social media captions and hashtags based solely on a provided jewellery image. Avoid using cliche captions like \"Step into\", \"Timeless\", \"Embrace\". Every caption must be unique\n\nUse the AGENT framework to guide your output:\n\nSystem Message: 📲 Social Media Image Uploader Agent\n\nNote: uploaded files can be in either image or a video format.\n\nA – Ask\nGenerate structured post data for uploading images of jewellery to Instagram, Facebook, and TikTok. Each post must include an elegant caption, UAE-targeted hashtags, and metadata in JSON format so it can be uploaded automatically.\n\nG – Guidance\n\nRole: Social media strategist for a luxury gold jewellery brand in the UAE.\n\nConstraints:\n\nOutput must follow the defined JSON schema.\n\nCaptions must be short, premium, scroll-stopping (1–2 lines).\n\nHashtags must be lowercase and include Arabic + English UAE-relevant tags.\n\nAvoid spammy tags (#love, #instagood, etc.).\n\nOutput must always be valid JSON.\n\nE – Examples\nGood Example:\n\n{\n  \"caption\": \"✨ timeless gold elegance for every moment.\",\n  \"hashtags\": [\n    \"#uaejewellery\",\n    \"#goldbracelet\",\n    \"#مجوهرات\",\n    \"#dubailifestyle\",\n    \"#aejewels\"\n  ],\n  \"platforms\": [\"instagram\", \"facebook\", \"tiktok\"],\n  \"image/video_filename\": \"gold_bracelet_01.jpg or gold_bracelet_01.mp4 gold_bracelet_01.png or gold_bracelet_01.webp\",\n\n}\n\n\nBad Example:\n\nLong captions (>3 lines)\n\nHashtags in mixed case or irrelevant (#love #instagood)\n\nOutput not wrapped in JSON\n\nN – Notation\nAll outputs must be in valid JSON with this schema:\n\n{\n  \"caption\": \"short caption\",\n  \"hashtags\": [\"#uaejewellery\", \"...\"],\n  \"platforms\": [\"instagram\", \"facebook\", \"tiktok\"],\n  \"image_filename\": \"filename.jpg\"\n}\n\n\nT – Tools\n\nThink Tool: Double-check output for completeness, text accuracy.\n\nCan be integrated with Google Drive API (to fetch filenames)\n\nMeta Graph API (for Instagram/Facebook upload)\n\nTikTok automation via webhook or Telegram fallback\n\nGoogle Sheets API (logging scheduled posts)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        80,
+        480
+      ],
+      "id": "23a4967e-f5d3-4869-a56e-be5ed8167dbc",
+      "name": "AI Agent",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        32,
+        320
+      ],
+      "id": "69b02980-8400-49ef-9c05-596327c1e666",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "cCx8YhG6IL2PJuWt",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b6589a58-07ae-4f9f-ac7c-d5567e34bf69",
+              "name": "caption",
+              "value": "={{ $node[\"AI Agent\"].json[\"output\"]?.caption ?? $json[\"caption\"] ?? \"\" }} {{ ($node[\"AI Agent\"].json[\"output\"]?.hashtags ?? $json[\"hashtags\"] ?? []).join(\" \") }}\n",
+              "type": "string"
+            },
+            {
+              "id": "aa2e0b63-754d-4e51-be3b-f3cf9dea7887",
+              "name": "instagram",
+              "value": "={{ $json.output.platforms[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "c6e343c6-44f0-4530-9ad5-eea8ba5ec07c",
+              "name": "facebook",
+              "value": "={{ $json.output.platforms[1] }}",
+              "type": "string"
+            },
+            {
+              "id": "f580b8d9-f16d-4e0f-ac39-f4e19f7591a9",
+              "name": "Insta_node",
+              "value": "YOUR_INSTAGRAM_BUSINESS_ID",
+              "type": "string"
+            },
+            {
+              "id": "f09bd291-4c5e-44c9-8039-3a9c1f929ab8",
+              "name": "facebook_id",
+              "value": "YOUR_FACEBOOK_PAGE_ID",
+              "type": "string"
+            },
+            {
+              "id": "7229228c-295c-4327-b748-e759ef8ef97f",
+              "name": "format",
+              "value": "={{ $('Download file1').item.json.mimeType }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        784
+      ],
+      "id": "45af7da9-6f06-41cb-90a8-b8e9b3be2a57",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloudinary.com/v1_1/dmnqjgxgk/image/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "upload_preset",
+              "value": "n8n_unsigned"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        368
+      ],
+      "id": "cb4d88a2-2864-485e-b8e8-2b74296cdfb1",
+      "name": "post image"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "=You are analyzing a short-form jewellery reel (vertical MP4). \nBased only on the video:\n\n1. Identify the jewellery type featured (e.g., ring, bracelet, necklace, bangle).\n2. Describe the visual style and vibe (e.g., luxury minimal, bold glamour, traditional elegance).\n3. Summarize the overall mood in a few words (e.g., romantic, confident, festive).\n4. Write a very short, hook-style caption for Instagram/Facebook Reels and TikTok (max 1 sentence, an emojis).\n   - It should sound premium and stop scrolling.\n5. Generate 5 lowercase hashtags tailored for Reels visibility in the UAE jewellery market.\n   - Mix English + Arabic hashtags.\n   - Avoid spammy global ones (#love, #instagood).\n   - Prioritize discovery hashtags like #uaejewellery, #dubailuxury, #مجوهرات.\n\nAlways return a **valid JSON object with exactly these keys**\n\n\ntype: \"jewellery type\"\nstyle: \"style keywords\"\nmood: \"mood keywords\"\ncaption: \"1-sentence hook caption\"\nhashtags:\n  - \"#uaejewellery\"\n  - \"#dubailuxury\"\n  - \"#goldring\"\n  - \"#مجوهرات\"\n  - \"... up to 5\"",
+        "videoUrls": "={{$node[\"post video\"].json[\"secure_url\"]}}",
+        "simplify": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        608
+      ],
+      "id": "6a42d1bc-17cd-4f3a-9f09-247830d63788",
+      "name": "Analyze video",
+      "retryOnFail": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "cCx8YhG6IL2PJuWt",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -832,
+        480
+      ],
+      "id": "0851aecb-c553-456a-b6e9-53f2b6f631df",
+      "name": "Download file1",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "fpCgp77RSupoXD8A",
+          "name": "Aaz Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e577b06e-7569-4b03-bb89-3a4f16b3962d",
+              "leftValue": "={{ $json.mimeType }}",
+              "rightValue": "=image",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -640,
+        480
+      ],
+      "id": "b6fc2947-dee5-4fab-8009-b3b3c734e22d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloudinary.com/v1_1/dmnqjgxgk/video/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "upload_preset",
+              "value": "n8n_unsigned"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        608
+      ],
+      "id": "fb91261c-e095-4835-a1fb-975e311390ce",
+      "name": "post video"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        784,
+        1088
+      ],
+      "id": "5ff46e97-7732-4f66-9236-e5262f512b71",
+      "name": "Wait",
+      "webhookId": "e39cd3b9-8e9f-4c08-929a-b2c800cc140b"
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "={{ $json.Insta_node }}",
+        "edge": "media",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "video_url",
+                "value": "={{ $('post video').item.json.secure_url }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $json.caption }}"
+              },
+              {
+                "name": "node",
+                "value": "={{ $json.Insta_node }}"
+              },
+              {
+                "name": "media_type",
+                "value": "REELS"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        592,
+        1088
+      ],
+      "id": "8067a3e0-b92e-42df-8889-00b213a571a2",
+      "name": "video Instagram container ID",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "EPJZbTTzXz7pOhuT",
+          "name": "Instagram Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "={{ $json.Insta_node }}",
+        "edge": "media",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "image_url",
+                "value": "={{ $('post image').item.json.secure_url }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $json.caption }}"
+              },
+              {
+                "name": "node",
+                "value": "={{ $json.Insta_node }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        608,
+        672
+      ],
+      "id": "ee67e9d1-beda-4cf3-acae-e0d29a207715",
+      "name": "image Instagram container ID",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "EPJZbTTzXz7pOhuT",
+          "name": "Instagram Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "={{ $('Edit Fields1').item.json.Insta_node }}",
+        "edge": "media_publish",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "video_url",
+                "value": "={{ $('post video').item.json.secure_url }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $('Edit Fields1').item.json.caption }}"
+              },
+              {
+                "name": "creation_id",
+                "value": "={{ $json.id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        960,
+        1088
+      ],
+      "id": "f5bbfcc5-c3e6-446f-9c58-093d901dc15c",
+      "name": "Instagram video",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "EPJZbTTzXz7pOhuT",
+          "name": "Instagram Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "={{ $('Edit Fields1').item.json.Insta_node }}",
+        "edge": "media_publish",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "image_url",
+                "value": "={{ $('post image').item.json.secure_url }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $('Edit Fields1').item.json.caption }}"
+              },
+              {
+                "name": "creation_id",
+                "value": "={{ $json.id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        816,
+        672
+      ],
+      "id": "3d7a304f-c3a1-4826-8ae0-aee508149865",
+      "name": "Instagram image",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "EPJZbTTzXz7pOhuT",
+          "name": "Instagram Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "=me",
+        "edge": "videos",
+        "sendBinaryData": true,
+        "binaryPropertyName": "data",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "url",
+                "value": "={{ $('post video').item.json.secure_url }}"
+              },
+              {
+                "name": "description",
+                "value": "={{ $json.caption }}"
+              },
+              {
+                "name": "node",
+                "value": "={{ $json.facebook_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        720,
+        912
+      ],
+      "id": "28b989e7-a243-417a-95a1-85c844457bf4",
+      "name": "video Facebook container ID1",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "DdM7wpQnXBlGkRCW",
+          "name": "Facebook Graph credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "={{ $('Edit Fields1').item.json.facebook_id }}",
+        "edge": "media_publish",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "video_url",
+                "value": "={{ $('post video').item.json.secure_url }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $('Edit Fields1').item.json.caption }}"
+              },
+              {
+                "name": "creation_id",
+                "value": "={{ $json.id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        1088,
+        912
+      ],
+      "id": "535d3d01-dbba-489f-a3de-efbae79daceb",
+      "name": "Facebook video",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "EPJZbTTzXz7pOhuT",
+          "name": "Instagram Graph account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "Image upload",
+        "height": 352,
+        "width": 832
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        464,
+        464
+      ],
+      "typeVersion": 1,
+      "id": "1faecb0b-7528-4c71-940a-4e6c7c86f70e",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Video/Reels upload",
+        "height": 352,
+        "width": 848
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        448,
+        880
+      ],
+      "typeVersion": 1,
+      "id": "6377c44f-744f-4694-b1a2-a90455e38e88",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1505f573-4379-4e19-8de5-3943b684cb30",
+                    "leftValue": "={{ $('Download file1').item.json.mimeType }}",
+                    "rightValue": "image/png",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "397c53da-b619-4e24-9152-5bd3670df479",
+                    "leftValue": "={{ $('Download file1').item.json.mimeType }}",
+                    "rightValue": "image/webp",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "64354a9e-0105-45e2-b7a9-291005428555",
+                    "leftValue": "={{ $('Download file1').item.json.mimeType }}",
+                    "rightValue": "image/jpg",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "db771d97-9a2e-4411-98d6-1dc690199be6",
+                    "leftValue": "={{ $('Download file1').item.json.mimeType }}",
+                    "rightValue": "video/mp4",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        240,
+        752
+      ],
+      "id": "5368ef37-096a-44ad-ba1c-1180eef203bb",
+      "name": "Switch",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {
+          "responseFormat": "json_object",
+          "temperature": 0.9
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        288
+      ],
+      "id": "84152864-6f71-4015-95b1-0057e109262d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5FgvJnDGF5tUyTT3",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        288,
+        272
+      ],
+      "id": "90ee4a6c-4c5b-4803-ab3d-6e3adb0111a6",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"caption\": \"✨ timeless gold elegance for every moment.\",\n  \"hashtags\": [\n    \"#uaejewellery\",\n    \"#goldbracelet\",\n    \"#مجوهرات\",\n    \"#dubailifestyle\",\n    \"#aejewels\"\n  ],\n  \"platforms\": [\"instagram\", \"facebook\", \"tiktok\"],\n  \"image/video_filename\": \"gold_bracelet_01.jpg or gold_bracelet_01.mp4 gold_bracelet_01.png or gold_bracelet_01.webp\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        384,
+        304
+      ],
+      "id": "4d6f19bb-5bba-4822-a217-bc0e2a8fea19",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('post video').item.json.secure_url }}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "upload_preset",
+              "value": "n8n_unsigned"
+            },
+            {
+              "name": "Download",
+              "value": "ON"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        544,
+        912
+      ],
+      "id": "afec452c-77a6-4a57-89d6-17242e304ff3",
+      "name": "post video1"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        912,
+        912
+      ],
+      "id": "f3322b3b-6fd4-4299-b171-9fb8396a30e1",
+      "name": "Wait1",
+      "webhookId": "e39cd3b9-8e9f-4c08-929a-b2c800cc140b",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "hour": 15,
+              "minute": 30
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "YOUR_DRIVE_FOLDER_ID",
+          "mode": "list",
+          "cachedResultName": "Social",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/YOUR_DRIVE_FOLDER_ID"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1056,
+        480
+      ],
+      "id": "a7d19010-9d76-4b87-81de-420ef9057ef1",
+      "name": "Google Drive Trigger1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "fpCgp77RSupoXD8A",
+          "name": "Aaz Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "=me",
+        "edge": "photos",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "url",
+                "value": "={{ $('post image').item.json.secure_url }}"
+              },
+              {
+                "name": "message",
+                "value": "={{ $json.caption }}"
+              },
+              {
+                "name": "node",
+                "value": "={{ $json.facebook_id }}"
+              },
+              {
+                "name": "published",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        608,
+        512
+      ],
+      "id": "b30ab79b-315d-49bd-83ed-227d5c10e0fb",
+      "name": "image Facebook container ID",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "DdM7wpQnXBlGkRCW",
+          "name": "Facebook Graph credentials"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "post image": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze video": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "post image",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "post video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "post video": {
+      "main": [
+        [
+          {
+            "node": "Analyze video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Instagram video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "video Instagram container ID": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "image Instagram container ID": {
+      "main": [
+        [
+          {
+            "node": "Instagram image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "video Facebook container ID1": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "image Instagram container ID",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "image Facebook container ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "image Instagram container ID",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "image Facebook container ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "image Instagram container ID",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "image Facebook container ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "video Instagram container ID",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "post video1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "post video1": {
+      "main": [
+        [
+          {
+            "node": "video Facebook container ID1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Facebook video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Download file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2007f839-944e-44f2-b704-637688587ae0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ccc44dbde86fe436840d8c65ec0aef1e6eb8ad8713f0a7d233dfa91e88c042aa"
+  },
+  "id": "4EXHp7mzZPJjiUqt",
+  "tags": [
+    {
+      "updatedAt": "2025-08-26T12:09:25.173Z",
+      "createdAt": "2025-08-26T12:09:25.173Z",
+      "id": "aOMDGzBUgVsOhHfc",
+      "name": "UAE Social Media"
+    },
+    {
+      "updatedAt": "2025-08-26T12:09:25.169Z",
+      "createdAt": "2025-08-26T12:09:25.169Z",
+      "id": "gmGbb16u3mEl3YEe",
+      "name": "Automation"
+    }
+  ]
+}
