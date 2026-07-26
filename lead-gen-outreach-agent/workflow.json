@@ -1,0 +1,1141 @@
+{
+  "name": "google maps scraper activator",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a Google Maps search assistant designed to create highly specific and localized search queries.\n\nYou will be provided with a business type and a city name. Your task is to generate a comprehensive list of search queries by incorporating the subregions and neighborhoods of the given city.\n\nRequirements:\nUse the format: <business type> + in + <subregion> for each query.\nInclude all relevant subregions or neighborhoods of the specified city.\nEnsure proper capitalization and spelling in all search queries.\nAim to cover every subregion within the city to maximize search accuracy and reach.\n\nExample:\nBusiness: Plumbers\nCity: Los Angeles\n\nOutput:\nplumbers+in+crestview  \nplumbers+in+downtown  \nplumbers+in+brentwood  \nplumbers+in+hollywood  \nplumbers+in+echo+park  \n... and so on, until all subregions are listed.  \n\nYour goal is to provide a complete and exhaustive list for any city and business type provided.\nPlease create search queries in {{ $('Google Sheets Trigger').item.json.Name }} city and {{ $('Google Sheets Trigger').item.json.Business }}business.\n\n**IMPORTANT**\n\nAlways include + signs instead of spaces in the seach queries.\nOutput in a valid JSON format, for example:\n\n{\n\"locations\": [\"plumbers+in+crestview\",\"plumbers+in+downtown\"]\n}",
+        "hasOutputParser": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        -928,
+        304
+      ],
+      "id": "aa6dbe53-69b2-49cd-bec6-db5fa6bcdd19",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"output\": [\"plumbers+in+chinatown\",\"plumbers+in+westlake\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -816,
+        160
+      ],
+      "id": "134af3e0-875a-47b8-956a-d71076c84f84",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -928,
+        128
+      ],
+      "id": "6eccae95-6e5c-475d-97d9-23d13af2fe13",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5FgvJnDGF5tUyTT3",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.locations",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        304
+      ],
+      "id": "a70e14cc-27c8-4dd4-a79b-111c3823bec2",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5222727f-131b-418e-826d-4f9e5166703d",
+              "name": "output",
+              "value": "={{ $json['output.locations'] }}",
+              "type": "string"
+            },
+            {
+              "id": "3840b137-beca-4463-b0e5-676bb162115a",
+              "name": "location",
+              "value": "={{ $('Google Sheets Trigger').item.json.Name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -368,
+        304
+      ],
+      "id": "1e34c643-b3d7-4ce3-90e7-eb372c5834a7",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "google map leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1216,
+        304
+      ],
+      "id": "adb96f80-73ec-4a36-bdcc-250f9c489361",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "3QUwggUo8TnFSrug",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        -272,
+        704
+      ],
+      "id": "06d717cf-3b86-4bb2-8a40-c82e4b216218",
+      "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3a73ba8c-562b-4ab4-a77e-cfea04e8b796",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        48,
+        608
+      ],
+      "id": "81dbe555-6549-4ab3-9ba6-b42ed95de744",
+      "name": "Filter1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        240,
+        288
+      ],
+      "id": "70374d6d-6c67-410a-8098-9f3e8356b5ff",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        976,
+        272
+      ],
+      "id": "becc57c6-eb11-4681-b74a-69e37e323990",
+      "name": "Remove Duplicates1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "685822e0-34fb-4ca9-973c-e2644818fcbe",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1184,
+        272
+      ],
+      "id": "35779a1a-396e-4c3f-9c06-daa974d030c3",
+      "name": "If",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const url = $input.first().json.url;\nconst regex = /https?:\\/\\/(?:www\\.)?([^\\/]+)/;\nconst match = url.match(regex);\n\nif (match) {\n    return { json: { domain: match[1] } }\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        448
+      ],
+      "id": "8aa97c7c-3c2c-4437-a8a3-5db34b0fa9d6",
+      "name": "extract only Domain",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        48,
+        816
+      ],
+      "id": "8cf2a520-89ac-4d1f-ae85-767a96fb4e26",
+      "name": "get url data",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.google.com/maps/search/{{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1088,
+        688
+      ],
+      "id": "8e9c363e-bd80-496c-a4e8-788c3f078789",
+      "name": "Get Location"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json.data;\n\nconst regex = /https:\\/\\/[^\\s\"']+/g;\n\nlet urls = data.match(regex) || [];\n\nreturn urls.map(url => {\n    const domainMatch = url.match(/https:\\/\\/[^\\/]+/);\n    const domain = domainMatch ? domainMatch[0] : url;\n    return { json: { url: domain } };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        704
+      ],
+      "id": "3cf0b4e9-6881-4ab6-ab80-f33dffa1a5ce",
+      "name": "Extract domain"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1f65c76d-7cd2-4a44-8dad-e613bed59fea",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "(google|gstatic|ggpht|schema\\.org|example\\.com|sentry-next\\.wixpress\\.com|ingest\\.sentry\\.io)",
+              "operator": {
+                "type": "string",
+                "operation": "notRegex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -464,
+        704
+      ],
+      "id": "9f5a0421-3e65-419c-8dba-718bd710bb38",
+      "name": "Filter Bad Mails "
+    },
+    {
+      "parameters": {
+        "jsCode": "const htmlContent = $('Loop Over Items1').first().json.data;\n\nconst domain = $input.first().json.domain;\n\nconst emailRegex = new RegExp(`[a-zA-Z0-9._%+-]+@${domain.replace(/\\./g, '\\\\.')}`, 'g');\n\nconst emails = htmlContent.match(emailRegex) || [];\n\n// If no emails found, return ['nothing found']\nconst result = emails.length === 0\n    ? [{ email: 'nothing found' }]\n    : emails\n        .filter((email, index, self) => self.indexOf(email) === index) // Remove duplicates\n        .map(email => ({ email }));\n\nconsole.log(result);\n\nreturn { emails: result };\n\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        448
+      ],
+      "id": "45e6ae34-c476-4c1c-ab8e-5cb3d6317428",
+      "name": "Find Domain Mails"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "64dedec3-f294-43bb-8899-c4a1bec43298",
+              "leftValue": "={{ $json.emails[0].email }}",
+              "rightValue": "nothing found",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        272
+      ],
+      "id": "819cefba-a4c8-4c38-83e0-d71a1813cd07",
+      "name": "Emails With valid Domains",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7c54bf99-47bf-42f5-b76d-15d41d43d1de",
+              "name": "email",
+              "value": "={{ $json.email.toLowerCase() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        272
+      ],
+      "id": "24cc5610-3615-417e-95de-effb4db68caa",
+      "name": "Lowercase",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -896,
+        688
+      ],
+      "id": "114a62e8-1913-41b0-9949-18b54e6bd79d",
+      "name": "Wait",
+      "webhookId": "67670334-b8a9-47d1-904d-a46e3fdd7155"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -96,
+        704
+      ],
+      "id": "687d1cf5-89ec-4786-a4db-e349c26828c0",
+      "name": "Loop Over Items2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "99e3c340-54f0-4728-afe1-8eb5c272978d",
+              "name": "url",
+              "value": "={{ $('Loop Over Items2').item.json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "58493fc3-a4f6-4af0-a2b9-d5dd178a041c",
+              "name": "data",
+              "value": "={{ $json.data }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        944
+      ],
+      "id": "12357311-85ba-4fcc-9e98-3cd525aa8a68",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "emails",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        624,
+        272
+      ],
+      "id": "c349714e-395b-42f4-8547-1c3d658b7446",
+      "name": "Split Out1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        96
+      ],
+      "id": "a214b9b0-bff3-4add-be56-7536a10b02b4",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -128,
+        304
+      ],
+      "id": "50bb78a4-288e-4fb4-a59d-2fa69e6a627d",
+      "name": "Loop Over Items",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "google map leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1500663988,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=1500663988"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "search term": "={{ $('Edit Fields').first().json.output }}",
+            "location": "={{ $('Edit Fields').first().json.location }}",
+            "website": "={{ $('Filter1').item.json.url }}",
+            "email": "={{ $json.email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "search term",
+              "displayName": "search term",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1440,
+        256
+      ],
+      "id": "5ad61d99-5141-4e8b-a5db-8a59578c03a9",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "n6Ev9o1gP8pRTY6A",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={\n  \"website\": \"{{ $json.website }}\",\n  \"email\": \"{{ $json.email }}\",\n  \"location\": \"{{ $json.location }}\"\n}\n\n-use the think tool to double check your output.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Outreach Email Generator (JSON Output)\n\n## Role\n- You are an outreach expert AI that writes short, high-impact cold emails for owners of scheduling-driven businesses (dental clinics, spas, restaurants).\n\n## Inputs\n- website, email, company_info (optional), style_seed (optional)\n\n## Hard Constraints\n\n- Produce exactly 4–5 sentences in the body, ≤100 words total.\n\n- Plain text body only — no bullets, no emojis, no markup.\n\n- Must mention the widget can talk, answer, and book 24/7.\n\n- If the website shows promotions/discounts, reference them; otherwise omit.\n\n- Use Gulf Standard Time only if you mention a time zone.\n\n- Do not include the sign-off inside body. Signature goes in regards and name.\n\n- Keep tone conversational, credible, founder-to-founder. No medical advice, no inventory guarantees, no unverifiable metrics.\n\n## Output Format (strict)\nReturn only a single JSON object with these exact keys:\n\n{\n  \"subject\": \"string\",\n  \"body\": \"string\",\n  \"regards\": \"Thank you,\",\n  \"name\": \"Ahmed Basolan\"\n}\n\n\n-subject: concise line (≤7 words), no emojis.\n\n-body: 4–5 sentences, ≤100 words, each sentence on a new line with a blank line between sentences to improve readability.\n\n-regards must be exactly: Thank you,\n\n-name must be exactly: Ahmed Basolan\n\n## Personalization Rules\n\n- Derive one business-specific benefit from website or company_info.\n\n- Implicitly name the business category (don’t guess brand names).\n\n- Mention AI surfacing promotions only if visible on the site.\n\n- Keep tone neutral; avoid loss or performance claims.\n\n- Style Controls\n\n- Alternate short and medium sentence lengths.\n\n- Avoid repeated bigrams (use synonyms for phrases like “in real time”).\n\n- No sentence >25 words.\n\n- Variation Engine (choose one from each list per run; don’t reuse the same item consecutively)\n\n## Curiosity Hooks:\n\n- Everyone likes trying AI—many visitors click it just to see.\n\n- People test AI out of curiosity; let’s turn that into bookings.\n\n- Why not let visitors chat with a widget that also speaks?\n\n- Let visitors ask FAQs and learn about your services by talking to AI.\n\n- Make your site interactive with voice AI that answers and books.\n\n- Opening Problem Frames (use a Curiosity Hook or a Problem Frame, not both):\n\n- After-hours inquiries often wait until morning.\n\n- Forms slow booking when callers want answers now.\n\n- Missed calls turn into missed tables or appointments.\n\n- Customers drop off when no one replies in real time.\n\n- Front-desk overflow pushes bookings to tomorrow.\n\n# Value Angles:\n\n- Voice/chat handles questions and confirms bookings automatically.\n\n- Speaks naturally, routes answers, and locks a time on the spot.\n\n- Converts visits and calls into confirmed slots without staff.\n\n- Greets, explains services, and schedules in one flow.\n\n- Answers pricing or service FAQs and books immediately.\n\n## Proof / Specificity:\n\n- Built on ElevenLabs; live on web, chat, or phone.\n\n- Runs on your existing site; no redesign.\n\n- Uses your site’s content as its knowledge base.\n\n- Connects to your calendar, WhatsApp, or CRM.\n\n- Highlights current promos or specials when present.\n\n## CTA (low-pressure):\n\n- Open to a quick live demo?\n\n- Worth testing on your site for a day?\n\n- Should I show a 60-second demo?\n\n- Want to hear it handle a booking?\n\n- Prefer a short walk-through online or in person?\n\n## Assembly Logic\n\n- Subject: tie to Curiosity Hook or Value Angle; ≤7 words.\n\n- Sentence 1: pick a Curiosity Hook or an Opening Problem Frame (not both).\n\n- Sentence 2: offer line = result + short timeline + mechanism, explicitly stating “talk, answer, and book 24/7.”\n\n- Sentence 3: Value Angle + one Proof/Specificity detail; add promo mention only if present on the site.\n\n- Sentence 4: CTA (low-pressure).\n\n- (Optional Sentence 5): one business-specific benefit (keep under 100 words total).\n\n- Set regards and name exactly as specified.\n\n- Return only the JSON. No extra text.\n\n(Optional) Example Output Shape\n{\n  \"subject\": \"Let visitors talk to AI\",\n  \"body\": \"Everyone likes trying AI—many visitors click it just to see.\\n\\nWe add a voice/chat widget that can talk, answer, and book 24/7, turning curious visits into appointments this week.\\n\\nIt greets guests, answers pricing or service FAQs, and connects to your calendar; it runs on your existing site.\\n\\nOpen to a quick live demo?\",\n  \"regards\": \"Thank you,\",\n  \"name\": \"Ahmed Basolan\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1664,
+        256
+      ],
+      "id": "b6981f17-efbf-48a7-9b28-4f1b4a3cb79a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "google map leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1500663988,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=1500663988"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1488,
+        576
+      ],
+      "id": "530603c8-4cab-4d30-a8c7-b0d832da87cc",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "n6Ev9o1gP8pRTY6A",
+          "name": "Google Sheets account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $workflow.id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1664,
+        480
+      ],
+      "id": "1c09cf67-63e2-4536-9892-a2a462f7006a",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        1776,
+        480
+      ],
+      "id": "43450a0d-3486-4bc1-b04d-fca368587061",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1312,
+        832
+      ],
+      "id": "2b62c4cd-c96c-426c-866e-1148ac08acd1",
+      "name": "Send a message",
+      "webhookId": "b7a75d30-5e76-4a76-ace8-0bda71c1bf9b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "KABZh3rzyMn0Bghb",
+          "name": "Gmail account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"subject\": \"Let visitors talk to AI\",\n  \"body\": \"Everyone likes trying AI—many visitors click it just to see.\\n\\nWe add a voice/chat widget that can talk, answer, and book 24/7, turning curious visits into appointments this week.\\n\\nIt greets guests, answers pricing or service FAQs, and connects to your calendar; it runs on your existing site.\\n\\nOpen to a quick live demo?\",\n  \"regards\": \"Thank you,\",\n  \"name\": \"Ahmed Basolan\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1904,
+        480
+      ],
+      "id": "5da20811-3467-44e3-8d72-07cc3f0fd942",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {
+          "frequencyPenalty": 0.6,
+          "presencePenalty": 0.7,
+          "temperature": 0.9,
+          "topP": 0.9
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1520,
+        480
+      ],
+      "id": "f3d46b24-730a-4c2c-9584-07071e47c77d",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "5FgvJnDGF5tUyTT3",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.output.Subject }}",
+        "message": "={{ $json.output.Message }}",
+        "options": {
+          "sendTo": "={{ $('Append row in sheet').item.json.email }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2064,
+        256
+      ],
+      "id": "968a5ef8-a630-4070-bdea-8b805ae9a191",
+      "name": "Create a draft",
+      "webhookId": "607031a0-1c5e-4fe6-ae3c-38c532f3805e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "KABZh3rzyMn0Bghb",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Emails With valid Domains",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "extract only Domain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract only Domain": {
+      "main": [
+        [
+          {
+            "node": "Find Domain Mails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get url data": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Location": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract domain": {
+      "main": [
+        [
+          {
+            "node": "Filter Bad Mails ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Bad Mails ": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Domain Mails": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Emails With valid Domains": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lowercase": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items2": {
+      "main": [
+        [
+          {
+            "node": "Filter1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "get url data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Lowercase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Extract domain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Location",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e92d74a8-33f1-435c-b2d8-c227b912b91d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ccc44dbde86fe436840d8c65ec0aef1e6eb8ad8713f0a7d233dfa91e88c042aa"
+  },
+  "id": "3lCGBYkekH5HpqyL",
+  "tags": []
+}
