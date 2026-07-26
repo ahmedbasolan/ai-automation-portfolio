@@ -1,0 +1,1094 @@
+{
+  "name": "AD CREATOR",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -832,
+        544
+      ],
+      "id": "45e920e6-cddc-47b7-a5d0-aebe6dec163b",
+      "name": "Telegram Trigger",
+      "webhookId": "24fe4b39-3325-4bee-9a5e-842c4ec9b7b2",
+      "credentials": {
+        "telegramApi": {
+          "id": "D1tiYGpexCStv93B",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/botYOUR_TELEGRAM_BOT_TOKEN/getFile?file_id=\n{{ $('Telegram Trigger').item.json.message.photo[3].file_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -832,
+        896
+      ],
+      "id": "a03877c0-da7b-423a-99c1-8fc8d9ae7d40",
+      "name": "Get Image Path"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "CHATGPT-4O-LATEST"
+        },
+        "text": "Describe the product and brand in this image in full detail. Fully ignore the background. Focus ONLY on the product",
+        "imageUrls": "=https://api.telegram.org/file/botYOUR_TELEGRAM_BOT_TOKEN/{{ $json.result.file_path }}",
+        "simplify": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -832,
+        1056
+      ],
+      "id": "1e9c5d04-0b45-4bfc-879f-a1addba2b338",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "5FgvJnDGF5tUyTT3",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "##   Input\n\n",
+        "height": 752,
+        "width": 310
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -944,
+        496
+      ],
+      "typeVersion": 1,
+      "id": "17ae0676-82db-42e2-a188-e28306f9cf81",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "message": "=** Caption **\n{{ $json.caption.replace(/[*_`]/g, '') }}\n\n** Creative summary **\n{{ $json.creative_summary.replace(/[*_`]/g, '')  }}",
+        "responseType": "customForm",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Approval",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Comments",
+              "placeholder": "Type your comments"
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        496
+      ],
+      "id": "eeec69b4-f11e-4480-9104-aff0d1b099c6",
+      "name": "Get Approval",
+      "webhookId": "abc6e4d6-519b-4dc9-b7df-b8ec51187e26",
+      "credentials": {
+        "telegramApi": {
+          "id": "D1tiYGpexCStv93B",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d39f3a19-aac0-45d0-9189-9cb83443cfab",
+              "leftValue": "={{ $json.data.Approval }}",
+              "rightValue": "Yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        496
+      ],
+      "id": "4886cea0-ec44-4e42-9808-9d4f3cc65946",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=This is the initial creative brief:\n{{ $('Telegram Trigger').item.json.message.caption }}\n\nHere are additional comments\n{{ $json.data.Comments }}\n\nDescription of the image provided for you. Make sure to focus on just the product:\n{{ $('Analyze image').item.json.choices[0].message.content }}\nUSE the Think tool to make sure the image_prompt and video_prompt are in stringfied JSON format\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an AI Ad Creator Agent.\nYour role is to receive a product image plus a short creative brief from the user, and then generate high-quality social media adverts. You act like a one-person creative agency — analyzing the product, crafting ad concepts, and producing structured outputs ready for automation workflows.\n\n🎯 Your Responsibilities:\n\nAnalyze Product Image\n\nIdentify product type, colors, mood, unique features, and possible use cases.\n\nExtract any branding cues (luxury, sporty, lifestyle, playful, professional).\n\nInterpret Creative Brief\n\nUnderstand the user’s marketing intent (e.g., luxury appeal, urgency, lifestyle integration, humor).\n\nCombine it with the image analysis to create the ad concept.\n\nGenerate Creative Outputs\nAlways return outputs in a structured format (JSON or clean sections) with:\n\nImage Prompt → A detailed, cinematic description for image generation.\n\nVideo Prompt → A scene-by-scene ad idea for short-form video (with tone, camera style, transitions).\n\nAd Caption → Engaging, scroll-stopping text optimized for social media.\n\nCreative Summary → A one-paragraph plain-language explanation of the ad concept.\n\nAspect Ratio & Format → Suggest the best (e.g., vertical 9:16 for TikTok/Instagram, square 1:1 for Facebook, landscape 16:9 for YouTube/LinkedIn).\n\nSuggested Model → Which generation model setting to use (e.g., fast vs. quality).\n\nPlatform Adaptation\nProvide variations optimized for:\n\nInstagram & TikTok → Short, trendy, emotional hooks.\n\nFacebook → Clear, family/brand-oriented messaging.\n\nPinterest → Lifestyle & inspirational titles + captions.\n\nLinkedIn → Professional, credibility-driven copy.\n\nHuman-in-the-Loop Ready\n\nAllow the user to approve, revise, or reject prompts.\n\nIf rejected, incorporate user feedback (e.g., “make it landscape,” “change tone to premium,” “focus on benefits”).\n\nMarketing Psychology\n\nApply proven ad tactics: FOMO (fear of missing out), emotional storytelling, social proof, benefits over features, urgency, lifestyle aspiration."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        512
+      ],
+      "id": "a04fe5c6-ffca-4f5b-8a7b-fe77a08dbc62",
+      "name": "Revised Prompt Ai agent"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Great! your creative is in progress",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -496,
+        752
+      ],
+      "id": "9d50dd68-0f6e-4c8f-b464-4a3d91321902",
+      "name": "In Progress",
+      "webhookId": "8a1930df-d8df-4fee-bc33-035009d9ab3b",
+      "credentials": {
+        "telegramApi": {
+          "id": "D1tiYGpexCStv93B",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3be7e273-3c78-402a-a88b-25fbd627f9fd",
+              "name": "image_prompt",
+              "value": "={{ $json.output.image_prompt }}",
+              "type": "string"
+            },
+            {
+              "id": "4b43a239-56ba-496d-8755-cac9c902a29b",
+              "name": "video_prompt",
+              "value": "={{ $json.output.video_prompt }}",
+              "type": "string"
+            },
+            {
+              "id": "028cfd37-b4a5-4f9d-80db-78b6625ce1c2",
+              "name": "caption",
+              "value": "={{ $json.output.caption }}",
+              "type": "string"
+            },
+            {
+              "id": "76bcea57-e91e-4deb-816f-f3508d487b0b",
+              "name": "creative_summary",
+              "value": "={{ $json.output.creative_summary }}",
+              "type": "string"
+            },
+            {
+              "id": "03c614cf-38db-428c-bb35-c4f1109b60a3",
+              "name": "aspect_ratio",
+              "value": "={{ $json.output.aspect_ratio }}",
+              "type": "string"
+            },
+            {
+              "id": "cd568f5f-7245-4a22-a5dd-25fecd7c9a88",
+              "name": "video_model",
+              "value": "={{ $json.output.video_model }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        496
+      ],
+      "id": "9d7ad95c-374b-4e44-a5e5-6e72b727ae3a",
+      "name": "Set Prompts"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.from.id }}",
+        "text": "Got it! i will take it from here. ",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -832,
+        704
+      ],
+      "id": "313a0013-fc2a-4ac4-9acc-0a69b3ec5dc0",
+      "name": "Send a text message",
+      "webhookId": "d03afa68-8a5a-4d11-b97a-9031262c02d7",
+      "credentials": {
+        "telegramApi": {
+          "id": "D1tiYGpexCStv93B",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "file": "={{ $json.data.response.resultUrls[0] }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        576,
+        736
+      ],
+      "id": "adc356d4-df43-4980-98ba-6e460c8e18bd",
+      "name": "Send a photo message",
+      "webhookId": "f3196370-fda9-4b69-962a-7abf372525a2",
+      "credentials": {
+        "telegramApi": {
+          "id": "D1tiYGpexCStv93B",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendVideo",
+        "chatId": "={{ $('In Progress').item.json.result.chat.id }}",
+        "file": "={{ $json.data.response.resultUrls[0] }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        960
+      ],
+      "id": "0a42f9de-9576-48f9-a75c-594b03538d17",
+      "name": "Send a video",
+      "webhookId": "c6427bdb-8621-4924-b5b0-44f53a7847a7",
+      "credentials": {
+        "telegramApi": {
+          "id": "D1tiYGpexCStv93B",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8f13df0a-294b-4a64-bf30-933c60d1e002",
+              "leftValue": "={{ $json.data.successFlag }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        976
+      ],
+      "id": "4432549a-7f4b-40bf-b6ec-9392d5877753",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f7972f74-5cb3-4ab3-a5d1-2e4e1b080822",
+              "leftValue": "={{ $json.data.successFlag }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        752
+      ],
+      "id": "e5fd7768-984d-4f98-a792-e7e51046000f",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.kie.ai/api/v1/gpt4o-image/record-info",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "taskId",
+              "value": "={{ $json.data.taskId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        176,
+        752
+      ],
+      "id": "aaddd1af-2ce2-4ca8-be50-cc511dc4cc52",
+      "name": "Get GPT-image",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "b8BmJ0WXFpwSUQgX",
+          "name": "Kie AI Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.kie.ai/api/v1/veo/record-info",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "taskId",
+              "value": "={{ $json.data.taskId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        976
+      ],
+      "id": "dbe66ed3-25c0-483a-87cf-44e6d758e3c2",
+      "name": "GET veo3",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "b8BmJ0WXFpwSUQgX",
+          "name": "Kie AI Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 120
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -16,
+        976
+      ],
+      "id": "12c788ef-9eb2-4e8d-a42f-356545b8dee1",
+      "name": "Wait veo3",
+      "webhookId": "a9020316-90a4-472a-9ee4-2df4edd98d26"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/veo/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": {{ $('Set Prompts').item.json.video_prompt }},\n  \"model\": \"{{ $('Set Prompts').item.json.video_model }}\",\n  \"aspectRatio\": \"{{ $('Set Prompts').item.json.aspect_ratio }}\",\n  \"imageUrls\": \"{{ $('Get GPT-image').item.json.data.response.resultUrls[0] }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -240,
+        976
+      ],
+      "id": "5506e21d-97ba-4682-82a1-1e9d0e44c589",
+      "name": "Create veo3",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "b8BmJ0WXFpwSUQgX",
+          "name": "Kie AI Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 120
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -32,
+        752
+      ],
+      "id": "75afe17d-816e-43f2-a0ef-e2fd517f0efe",
+      "name": "Wait",
+      "webhookId": "a9020316-90a4-472a-9ee4-2df4edd98d26"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/gpt4o-image/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"filesUrl\": [ \"https://api.telegram.org/file/botYOUR_TELEGRAM_BOT_TOKEN/{{ $('Get Image Path').item.json.result.file_path }}\"\n  ],\n  \"prompt\": \"Take the product in the image and place it in this scenario:{{ $('Set Prompts').item.json.image_prompt.replace(/\\\"/g, '\\\\\\\"') }} \",\n  \"size\": \"3:2\",\n  \"nVariants\": 1\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -256,
+        752
+      ],
+      "id": "e0919780-24bb-4063-9049-979581729b7f",
+      "name": "Create GPT-image",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "b8BmJ0WXFpwSUQgX",
+          "name": "Kie AI Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"image_prompt\": \"string\",\n  \"video_prompt\": \"stringfied JSON\",\n  \"caption\":\"short caption\",\n  \"creative_summary\":\"summary of the combined visual concept\",\n  \"aspect_ratio\":  \"vertical or horizontal\",\n  \"video_model\":\"veo3_fast\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        192,
+        320
+      ],
+      "id": "6b11d371-b320-4b7d-9b16-e4b750e7faf4",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        32,
+        320
+      ],
+      "id": "34a68aa5-430a-4ea3-a69c-12dbcfbe5522",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -128,
+        320
+      ],
+      "id": "08bd6719-6507-4b5d-b266-b08b744e597d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5FgvJnDGF5tUyTT3",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=This is the initial creative brief:\n{{ $('Telegram Trigger').item.json.message.caption }}\n\nTake inspirations from these prompts and get creative:\n{{ $json['Amazon Gamer Room'] }},{{ $json['Chewy Pet Supplies'] }},{{ $json['IKEA Prompt'] }},{{ $json['Corona Beach Rave'] }},{{ $json['Jeep Basecamp'] }},{{ $json['Lego Porsche'] }},{{ $json['Louis Vuitton Handbag Reveal'] }},{{ $json['Nike Ad'] }},{{ $json['NYC Skyline'] }},{{ $json['Rimowa Suitcase'] }},{{ $json['StrideX Sneaker Boutique'] }},{{ $json['Tennis Spin'] }},{{ $json['Tesla Showroom'] }}\n\n\nDescription of the product:\n{{ $('Analyze image').item.json.choices[0].message.content }}\n\nUSE the Think tool to double check your output",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=system_prompt: |\n\nApply proven ad tactics: FOMO (fear of missing out), emotional storytelling, social proof, benefits over features, urgency, lifestyle aspiration.\n\n  ## 🎬 SYSTEM PROMPT: Creative Ad Generator for Product Imagery & Video and Prompt Engineer\n\n  A – Ask:\n    From the product image analysis and the user’s caption/intent, generate:\n      - \"image_prompt\": a cinematic image description (string)\n      - \"video_prompt\": a structured JSON object (stringified) describing the ad video\n      - \"caption\": a short, engaging social caption\n      - \"creative_summary\": a plain-language explanation of the ad concept\n      - \"aspect_ratio\": best suited ratio (\"16:9\", \"9:16\", or \"1:1\")\n      - \"video_model\": recommended model (\"veo3_fast\")\n\n  G – Guidance:\n    role: Act as a seasoned creative director with expertise in **visual storytelling, branding, and advertising**.  \n    style: Commercial-grade clarity, cinematic detail, and platform-optimized adaptability.  \n    output_count: 1\n\n  Constraints & Structure:\n    - Always return a **valid JSON object with exactly these keys**:  \n      { \"image_prompt\", \"video_prompt\", \"caption\", \"creative_summary\", \"aspect_ratio\", \"video_model\" }\n    - \"video_prompt\" must itself be **stringified JSON** with these keys:\n      {\n        \"description\": \"...\",\n        \"setting\": \"...\",\n        \"camera_type\": \"...\",\n        \"camera_movement\": \"...\",\n        \"action\": \"...\",\n        \"lighting\": \"...\",\n        \"elements\": [\"...\"],\n        \"motion\": \"...\",\n        \"ending\": \"...\",\n        \"audio\": \"...\"\n      }\n    - Do not include any text outside the JSON object.  \n    - Escape all quotes correctly (JSON-safe).  \n    - If the user brief lacks detail, invent a creative, coherent concept aligned with the product.\n\n  Image Prompt (string):\n    - Describe the product in cinematic, ad-ready detail.  \n    - Mention setting, background, composition, lighting, textures, reflections.  \n    - Ensure the product is always the **hero focus**.  \n\n  Video Prompt (stringified JSON):\n    - Start with the product already visible.  \n    - Build scenes progressively (hero → detail → interaction → reveal/ending).  \n    - Keep camera moves realistic and production-feasible.  \n    - Ensure setting, lighting, and style align with the image prompt.  \n    - Use **elements[]** to list key visual details (props, environment, product features).  \n    - End with a clear **closure moment** (e.g., logo reveal, loop, fade-out).  \n\n  Creative Summary:\n    - Start with a short, non-technical overview (what viewers will see).  \n    - Add style, mood, and brand tone (3–5 sentences).  \n\n  Caption:\n    - Must be short, catchy, and social-media ready.  \n    - Use marketing psychology: urgency, lifestyle aspiration, FOMO, or benefit-first.  \n\n  Aspect Ratio & Format:\n    - Suggest **one primary ratio** based on platform fit.  \n    - Optionally add a secondary cutdown (e.g., 9:16 + 16:9).  \n\n  Best Practices:\n    - Think like a **one-person creative agency**: concept + copy + production.  \n    - Always keep **brand/product first**, background supportive only.  \n    - Avoid vague adjectives (“nice,” “cool”); use **cinematic and descriptive language**.  \n    - Ensure output is **machine-parseable JSON only** — no markdown, no commentary."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -464,
+        496
+      ],
+      "id": "f4e10a7d-aee9-4066-ae22-cbb5fa284db0",
+      "name": "Initial Prompt AI Agent",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9ea3f6e3-e3de-45d5-955d-925cc59a22ff",
+              "name": "Amazon Gamer Room",
+              "value": " metadata:   prompt_name: \"Amazon Empty Room Assembly\"   base_style: \"cinematic, photorealistic, 4K\"   aspect_ratio: \"16:9\"   room_description: \"An empty, large, sunlit Scandinavian room with white walls and light wood floors.\"   camera_setup: \"A single, fixed, wide-angle shot. The camera does not move for the entire 8-second duration.\"   key_elements:     - \"A sealed Amazon box with logo visible\"   assembled_elements:     - \"bed with dark blue duvet\"     - \"blue throw blanket\"     - \"metal table\"     - \"neon lamps\"     - \"wardrobe\"     - \"shelves\"     - \"gamer PC\"     - \"Gamer monitor and keyboard\"     - \"rug\"     - \"curtains\"     - \"gamer headsets\"   negative_prompts: [\"no people\", \"no text overlays\", \"no distracting music\"]   timeline:     - sequence: 1       timestamp: \"00:00-00:01\"       action: \"In the center of the otherwise empty room, a sealed Amazon box sits on the floor and begins to tremble gently.\"       audio: \"Low, subtle rumbling sound. The echo of a large, empty room.\"     - sequence: 2       timestamp: \"00:01-00:02\"       action: \"The box seams burst open with a puff of cardboard dust.\"       audio: \"A sharp 'POP' sound, followed by tearing cardboard.\"     - sequence: 3       timestamp: \"00:02-00:06\"       action: \"Hyper-lapse: From the fixed wide perspective, furniture pieces fly out of the box and assemble themselves, creating all the items from the 'assembled_elements' list.\"       audio: \"A cascade of satisfying, fast-paced ASMR sounds: whirring, clicking, wood snapping into place.\"     - sequence: 4       timestamp: \"00:06-00:08\"       action: \"The final piece—the blue throw blanket—gracefully lands on the newly formed bed. The room is now perfectly furnished and serene. All motion ceases.\"       audio: \"All chaotic sounds stop. A single, soft 'fwoomp' as the blanket lands. The sound of a furnished, quiet room.\"",
+              "type": "string"
+            },
+            {
+              "id": "898512c7-57e2-4b44-b651-6b28a1abaac7",
+              "name": "Chewy Pet Supplies",
+              "value": " {   \"description\": \"Cinematic shot of a sunlit, empty kitchen. A sealed Chewy box sits in the center. It trembles, explodes open in one burst, and pet supplies rapidly assemble into place: food and water bowls, a dog bed, toys, and a bag of food. A dog runs in and flops into the bed. No text.\",   \"style\": \"cinematic\",   \"camera\": \"fixed wide angle\",   \"lighting\": \"natural warm with soft shadows\",   \"room\": \"modern kitchen with hardwood floors\",   \"elements\": [     \"Chewy box (logo visible)\",     \"dog food and water bowls\",     \"dog bed\",     \"dog toys (rope, ball, bone)\",     \"bag of dog food\",     \"wall hook with leash\",     \"dog (golden retriever)\"   ],   \"motion\": \"box explodes open, dog items fly out and assemble rapidly and precisely\",   \"ending\": \"dog enters and settles happily into the bed\",   \"text\": \"none\",   \"keywords\": [     \"16:9\",     \"Chewy\",     \"pet supplies\",     \"fast assembly\",     \"dog\",     \"no text\",     \"warm lighting\"   ] }",
+              "type": "string"
+            },
+            {
+              "id": "99ece073-a6e3-469f-ad81-2ae006ed9bed",
+              "name": "IKEA Prompt",
+              "value": "={   \"description\": \"Cinematic shot of a sunlit Scandinavian bedroom. A sealed IKEA box trembles, opens, and flat pack furniture assembles rapidly into a serene, styled room highlighted by a yellow IKEA throw on the bed. No text.\",   \"style\": cinematic\",   \"camera\": \"fixed wide angle\",   \"lighting\": \"natural warm with cool accents\",   \"room\": \"Scandinavian bedroom\",   \"elements\": [     \"IKEA box (logo visible)\",     \"bed with yellow throw\",     \"bedside tables\",     \"lamps\",     \"wardrobe\",     \"shelves\",     \"mirror\",     \"art\",     \"rug\",     \"curtains\",     \"reading chair\",     \"plants\"   ],   \"motion\": \"box opens, furniture assembles precisely and rapidly\",   \"ending\": \"calm, modern space with yellow IKEA accent\",   \"text\": \"none\",   \"keywords\": [     \"16:9\",     \"IKEA\",     \"Scandinavian\",     \"fast assembly\",     \"no text\",     \"warm & cool tones\"   ] }",
+              "type": "string"
+            },
+            {
+              "id": "ac8f84ab-bc0c-452b-bb26-8e0379674f87",
+              "name": "Corona Beach Rave",
+              "value": "{ \"description\": \"Cinematic close-up of a cold, dewy Corona bottle sitting alone on a weathered beach table. It begins to hum, vibrate. The bottle cap *pops*—and the entire environment unfolds from inside: palm trees rise, lights string themselves, speakers assemble mid-air, sand shifts into a dance floor. A DJ booth builds from driftwood. Music kicks in. A beach rave is born. No text.\",   \"style\": \"cinematic, magical realism\", \"camera\": \"starts ultra close, zooms out and cranes overhead as the world expands\", \"lighting\": \"sunset turning to neon—golden hour into party glow\", \"environment\": \"quiet beach transforms into high-energy beach rave\", \"elements\": [ \"Corona bottle (label visible, condensation dripping)\", \"pop-top cap in slow motion\", \"exploding citrus slice\", \"sand morphing into dance floor\", \"palm trees rising\", \"neon lights snapping on\", \"DJ booth building itself\", \"crowd materializing mid-dance\", \"fire pit lighting\", \"surfboards as signage\"], \"motion\": \"explosion of elements from bottle, everything assembles in rapid time-lapse\", \"ending\": \"Corona bottle in foreground, beach rave in full swing behind it\", \"text\": \"none\", \"keywords\": [\"Corona\", \"beach party\", \"bottle transforms\", \"rave build\", \"sunset to night\", \"cinematic\", \"no text\" ] }",
+              "type": "string"
+            },
+            {
+              "id": "c32e2dc8-5dfd-48a3-9420-812477e54472",
+              "name": "Jeep Basecamp",
+              "value": " {   \"description\": \"Epic cinematic shot in a wild, remote landscape. A rugged, mechanical expedition crate splits open, its panels unfolding to reveal a fully-equipped Jeep Wrangler Rubicon at the center of an adventure-ready basecamp at sunset.\",   \"style\": \"cinematic, gritty, realistic, epic\",   \"camera\": \"medium wide shot, steady, with a slow push-in as the vehicle is revealed\",   \"lighting\": \"dramatic golden hour, long shadows, lens flare, warm functional light from the camp gear\",   \"location\": \"Moab desert canyon at sunset\",   \"elements\": [     \"Jeep Wrangler Rubicon (dirty, mud-splattered)\",     \"mechanical unfolding crate with Jeep logo\",     \"rooftop tent (already deployed)\",     \"glowing LED camp lights\",     \"a few solar panels\",     \"durable camping chairs\",     \"dust and grit in the air\"   ],   \"motion\": \"The crate's panels mechanically unlock and fold outward with audible clicks, revealing the Jeep within. Dust gently swirls from the movement.\",   \"ending\": \"A stunning, adventure-ready scene with the rugged Jeep as the hero, ready for exploration.\",   \"text\": \"none\",   \"keywords\": [     \"4k\", \"hyperrealistic\", \"Jeep\", \"reveal\", \"adventure\",     \"off-road\", \"basecamp\", \"rugged\", \"golden hour\", \"cinematic\", \"no people\", \"unfolding crate\"   ] }",
+              "type": "string"
+            },
+            {
+              "id": "bca095e4-8437-4aaf-bdce-728d438b1606",
+              "name": "Lego Porsche",
+              "value": " {   \"description\": \"Photorealistic cinematic shot of a modern kitchen island at sunset. A sealed box of LEGO Porsche 911 Turbo and 911 Targa trembles, bursts open, and hundreds of glossy white, black, and orange LEGO pieces fly into the air and rapidly assemble into a sleek Porsche 911 model with detailed headlights, curved fenders, and an opening trunk. No text.\",   \"style\": \"photorealistic cinematic\",   \"camera\": \"smooth dolly shot transitioning from a close-up of the box to a wide shot of the car assembling\",   \"lighting\": \"warm sunset glow with soft ambient shadows\",   \"room\": \"modern kitchen with marble countertops, minimal appliances, and wooden bar stools\",   \"elements\": [     \"LEGO Porsche 911 Turbo and Targa box (Porsche logo visible)\",     \"white, black, and orange LEGO pieces\",     \"sleek 911 body with headlights and taillights\",     \"detailed interior with steering wheel and dashboard\",     \"removable roof panel for Targa mode\",     \"LEGO driver minifigure in racing outfit\",     \"tiny tools and tire set on the countertop\"   ],   \"motion\": \"box rattles and lid bursts open, bricks spin and lock into place mid-air to form the Porsche, headlights flicker on, and the roof panel clicks into position\",   \"ending\": \"a fully assembled Porsche 911 glistens under the sunset light on the countertop, angled as if ready to drive\",   \"text\": \"none\",   \"keywords\": [     \"16:9\", \"LEGO Porsche\", \"fast assembly\", \"photorealistic\", \"sunset lighting\", \"detailed car model\"   ] }",
+              "type": "string"
+            },
+            {
+              "id": "45d6dc07-9d82-44b7-9ff8-a8b9353a8a39",
+              "name": "Louis Vuitton Handbag Reveal",
+              "value": " {   \"description\": \"Fixed wide-angle cinematic shot of a dark velvet surface under soft spotlight. A golden monogram LV logo shimmers midair, suspended above the surface. It begins to disassemble into thousands of tiny gold threads, which flow downward like liquid embroidery. The threads weave themselves into a detailed silhouette of a Louis Vuitton handbag. As the final stitch completes, the bag rises gently upright, its leather glowing, monogram pattern subtly embossed. A gold zipper glides open on its own, revealing a soft interior glow. No text.\",   \"style\": \"cinematic, luxurious, elegant\",   \"camera\": \"fixed wide angle\",   \"lighting\": \"moody spotlight with warm golden highlights and gentle falloff\",   \"environment\": \"black velvet tabletop with soft shadows and refined texture\",   \"elements\": [     \"gold LV monogram logo\",     \"golden embroidery threads\",     \"Louis Vuitton handbag silhouette\",     \"glowing leather texture\",     \"gold zipper movement\",     \"interior light reveal\"   ],   \"motion\": {     \"type\": \"logo-to-thread-to-object\",     \"details\": \"LV logo dissolves into gold threads, threads form bag, bag opens\"   },   \"ending\": \"The completed LV bag rests in the center, glowing softly. The camera holds for a moment, then fades to black. No text.\",   \"audio\": {     \"voice_over\": \"none\",     \"music\": \"subtle cinematic string swell with harp accents\",     \"sfx\": \"gentle thread weaving sounds, leather flexing, zipper slide\"   },   \"text_overlay\": \"none\",   \"format\": \"16:9\",   \"keywords\": [     \"Louis Vuitton\", \"luxury fashion\", \"handbag reveal\", \"embroidery transformation\", \"elegance\", \"cinematic branding\"   ] }",
+              "type": "string"
+            },
+            {
+              "id": "9a0a3de4-44ae-40b5-9ff1-f834e554149e",
+              "name": "Nike Ad",
+              "value": "{ \"description\": \"Hyper-stylized cinematic sequence inside a dark, misty urban basketball court at night. A closed Nike shoebox levitates, spins, and explodes into a vortex of sneaker parts. As a pair of glowing Air Jordans assembles mid-air, a character steps through smoke, lip-syncing a bold one-liner directly to camera as the shoes lock onto their feet with a kinetic blast.\", \"style\": \"stylized cinematic with light surreal VFX\", \"camera\": { \"type\": \"dynamic Steadicam and crane combo\", \"movement\": \"slow crane-down into rotating dolly move, then sudden handheld push-in during lip sync\", \"lens\": \"28mm for immersive wide-angle distortion during transformation\" }, \"lighting\": { \"type\": \"high-contrast urban night lighting\", \"sources\": \"overhead flickering halogen, bounce from wet pavement, rim lights from behind mist\", \"FX\": \"volumetric fog, sharp reflections on asphalt\" }, \"scene\": { \"location\": \"open-air industrial basketball court at night\", \"set_pieces\": [ \"chain-link fencing backlit by headlights\", \"wet pavement with puddle reflections\", \"floating Nike shoebox with visible swoosh\", \"slowly rising ambient smoke\" ] }, \"subject\": { \"character\": { \"description\": \"young adult, athletic build, platinum buzzcut, black techwear hoodie\", \"pose\": \"walks forward confidently, looking into camera, lips sync perfectly to voiceover\", \"lip_sync_line\": \"\\\"This ain’t style. This is power.\\\"\" }, \"shoes\": { \"brand\": \"Nike Air Jordan\", \"action\": \"shoebox explodes in slow motion, parts vortex upward, assemble in mid-air with glow FX, rotate once before flying onto character’s feet with a shockwave ripple\" } }, \"VFX\": { \"transformation\": \"slow-mo sneaker parts form with neon edge trails and motion blur\", \"shockwave\": \"circular distortion ripple on impact\", \"particles\": \"tiny swoosh-shaped embers drift through air post-transformation\", \"environment\": \"puddle reacts to energy with ripple sync\" }, \"motion\": \"shoes self-assemble mid-air with orbital motion; camera swings 180° as character lip-syncs; final zoom snap-in on Nike swoosh as shoes land and light flares\", \"sound_design\": { \"ambience\": \"distant traffic hum, echoing court reverb\", \"FX\": [ \"shoebox low-end bass hum + snap-pop explosion\", \"orbital shoe assembly with layered *whoosh-ping* glides\", \"impact blast with muffled shockwave\", \"shoelaces zip in with rising tension cue\" ], \"voiceover\": { \"delivery\": \"confident, clean baritone, slightly reverbed\", \"line\": \"\\\"This ain’t style. This is power.\\\"\" }, \"music\": \"hard-hitting trap beat with glitched snares and deep sub-bass swell during climax\" }, \"ending\": \"Character stands on lit court, Air Jordans glowing faintly. Camera orbit freeze-frames as logo tag pulses briefly onscreen.\", \"text\": \"optional logo pulse at end only\", \"keywords\": [ \"Nike\", \"Air Jordan\", \"product transformation\", \"stylized VFX\", \"lip sync\", \"basketball court\", \"power statement\", \"cinematic advertising\", \"shockwave impact\", \"trap beat\" ] }",
+              "type": "string"
+            },
+            {
+              "id": "f648c3e3-5a3f-4db7-987c-cbc282a9be2e",
+              "name": "NYC Skyline",
+              "value": "metadata: prompt_name: \"NYC City Assembly\" base_style: \"cinematic, photorealistic, 4K\" aspect_ratio: \"16:9\" city_description: \"A vast, empty urban plaza at dawn, ground level view with concrete pavement stretching into the mist.\" camera_setup: \"A single, fixed, wide-angle shot. The camera holds its position for the entire 8-second duration.\" key_elements: - \"A sealed steel shipping container stamped with 'NYC' in bold letters\" assembled_elements: - \"iconic Manhattan skyscrapers (e.g., Empire State Building, Chrysler Building)\" - \"Brooklyn Bridge arching into frame\" - \"yellow taxi cabs lined up along a street\" - \"hydrant and classic black street lamps\" - \"subway entrance staircase with MTA sign\" - \"Statue of Liberty’s torch and crown silhouette\" - \"Central Park trees emerging in the background\" - \"water towers perched on rooftop structures\" - \"billboard frames and neon signs\" - \"sidewalk café tables and chairs full of people\" negative_prompts: [\"no text overlays\", \"no overt graphics\"]  timeline: - sequence: 1 timestamp: \"00:00-00:01\" action: \"In the center of the barren plaza sits the sealed NYC container. It begins to tremble as light fog swirls around it.\" audio: \"Deep, resonant rumble echoing across empty concrete.\"  - sequence: 2 timestamp: \"00:01-00:02\" action: \"The container’s steel doors burst open outward, releasing a spray of mist and loose rivets.\" audio: \"Sharp metallic clang, followed by hissing steam.\"  - sequence: 3 timestamp: \"00:02-00:06\" action: \"Hyper-lapse: From the fixed vantage, city elements rocket out of the container and lock into place—steel beams rise, glass facades snap on, bridges span into view, and yellow taxis line up automatically.\" audio: \"A rapid sequence of ASMR city-building sounds: metal clanks, glass sliding, cables snapping, engines revving softly.\"  - sequence: 4 timestamp: \"00:06-00:08\" action: \"The final element—a single yellow taxi—glides forward and parks beside the newfound curb. All motion freezes as morning light bathes the fully formed New York Cityscape.\" audio: \"A soft engine cut-off 'chug,' then the distant hum of awakening city traffic, fading into serene dawn silence.\"",
+              "type": "string"
+            },
+            {
+              "id": "c5fd7858-5773-4e6e-b087-2b0dffd6fc6c",
+              "name": "Rimowa Suitcase",
+              "value": " {   \"description\": \"Cinematic editorial shot of an upright transparent suitcase in a plain white cyclorama studio. A burst of yellow mist fills the suitcase as it spins rapidly, transforming mid-spin into a solid yellow hard-shell suitcase. The camera pushes in smoothly before holding on the final form.\",   \"style\": \"editorial cinematic\",   \"camera\": \"precision dolly-in from 2.5m to 1.5m over 5 seconds, then static hero shot\",   \"lighting\": \"clean, soft, and even—no visible light sources or reflections; lighting wraps naturally with minimal shadowing\",   \"room\": \"plain infinite white cyclorama (no texture, no visible lights, seamless floor-to-wall transition)\",   \"elements\": [     \"transparent upright suitcase\",     \"volumetric yellow mist\",     \"solid yellow hard-shell suitcase with ribbed structure\",     \"chrome latches and telescopic handle\",     \"soft reflective white floor\",     \"faint lingering mist at base\"   ],   \"motion\": \"yellow mist violently fills the suitcase in under 2s; suitcase spins upright on vertical axis and transforms mid-spin into solid yellow shell; spin halts cleanly; camera push-in and hold\",   \"ending\": \"suitcase stops mid-frame in bold yellow form; mist dissipates; fade to white\",   \"text\": \"none\",   \"keywords\": [     \"editorial\", \"product transformation\", \"white cyclorama\", \"clean studio\", \"yellow mist\", \"no text\", \"no humans\", \"4K\", \"minimalist\"   ] }",
+              "type": "string"
+            },
+            {
+              "id": "89726186-cc9b-44db-a5d9-fee0ba0f599a",
+              "name": "StrideX Sneaker Boutique",
+              "value": "description: \"Urban sneaker boutique at night. A sealed StrideX shoe box rattles, shoots open, and neon-accented sneakers hover, self-lacing mid-air. They sprint on a treadmill of light and freeze in a hero pose.\" style: high-energy commercial camera: handheld whip-pan lighting: dynamic neon blues and magentas room: industrial retail space with concrete floor elements:  - \"StrideX box (logo glowing)\"  - \"self-lacing sneakers\"  - \"holographic treadmill\"  - \"LED floor grid\" motion: \"box explodes open, sneakers hover, tie laces, sprint, stop sharply\" ending: \"sneakers land on pedestal under spotlight\" text: none keywords:  - \"9:16\"  - \"sneakers\"  - \"neon\"  - \"motion freeze\"  - \"no text\"",
+              "type": "string"
+            },
+            {
+              "id": "2c76e5d5-fec8-4d7b-a47b-579d827cea93",
+              "name": "Tennis Spin",
+              "value": "{   \"description\": \"A hyper-real macro tennis ball sits against a black background. It slowly cracks open like a shell to reveal a surreal spherical interior: a miniature curved clay court embedded within the felt-lined shell. A female tennis player stands centered in the middle third.\",   \"style\": \"editorial realism\",   \"camera\": \"macro static → pivot and dolly-in → lateral tracking to follow spinning ball\",   \"lighting\": \"soft top-down editorial lighting with curved, tactile shadows\",   \"scene\": \"interior of a spherical tennis ball with a warped clay court and surreal sportscape\",   \"elements\": [     \"matte neon-green tennis ball\",     \"white seam detail\",     \"shell-style lid opening upward\",     \"miniature curved clay court\",     \"floating net\",     \"curved fencing and ambient lights\",     \"female tennis player centered in middle third\",     \"green felt-lined interior shell\",     \"spinning tennis ball flying into right third\",     \"macro ball exterior reforming at end\"   ],   \"motion\": \"ball cracks open → camera glides in → player strikes ball with grunt → ball spins toward lens → rotates into original macro position\",   \"ending\": \"loop resolves with ball closing seamlessly into its original macro form, same angle and lighting\",   \"audio\": \"no text, only ambient sound and sharp player grunt on impact\" }",
+              "type": "string"
+            },
+            {
+              "id": "bbbe9173-3fe1-4ec2-bdcf-c7a775f5cc73",
+              "name": "Tesla Showroom",
+              "value": "{   \"description\": \"Cinematic shot of a minimalist Tesla-branded crate magically opening to reveal a fully formed Tesla vehicle and an instantly assembled, sleek Tesla-themed showroom around it. No text.\",   \"style\": \"cinematic\",   \"camera\": \"fixed wide angle, with subtle zooms on key transformations\",   \"lighting\": \"controlled, high-tech, transitioning from dim to bright and clean\",   \"room\": \"empty futuristic space transforming into a minimalist Tesla showroom\",   \"elements\": [     \"Tesla-branded crate (glowing seams)\",     \"Tesla vehicle (e.g., Model 3/Y/Cybertruck)\",     \"charging station\",     \"minimalist display panels\",     \"sleek showroom furniture\",     \"ambient lighting elements\"   ],   \"motion\": \"crate panels retract smoothly and silently, car revealed, showroom elements rise/unfold precisely and rapidly\",   \"ending\": \"pristine, inviting Tesla showroom with car as centerpiece\",   \"text\": \"none\",   \"keywords\": [     \"16:9\",     \"Tesla\",     \"magic assembly\",     \"showroom\",     \"innovation\",     \"futuristic\",     \"no text\",     \"clean design\",     \"reveal\"   ] }",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -608,
+        496
+      ],
+      "id": "c92559b9-2c6e-4906-868c-73475fa9d934",
+      "name": "Inspirations"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "message": "=Ready to make the video?",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        784,
+        736
+      ],
+      "id": "aaa73f22-f21d-43fe-8287-07cce477cebd",
+      "name": "Get Approval1 for veo3",
+      "webhookId": "abc6e4d6-519b-4dc9-b7df-b8ec51187e26",
+      "credentials": {
+        "telegramApi": {
+          "id": "D1tiYGpexCStv93B",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        320
+      ],
+      "id": "537134a1-8131-4142-beed-69f24922f4df",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "5FgvJnDGF5tUyTT3",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Image Path": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Inspirations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Approval": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "In Progress",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Revised Prompt Ai agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revised Prompt Ai agent": {
+      "main": [
+        [
+          {
+            "node": "Set Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "In Progress": {
+      "main": [
+        [
+          {
+            "node": "Create GPT-image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Prompts": {
+      "main": [
+        [
+          {
+            "node": "Get Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Get Image Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a photo message": {
+      "main": [
+        [
+          {
+            "node": "Get Approval1 for veo3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Send a video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GET veo3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get GPT-image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get GPT-image": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET veo3": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait veo3": {
+      "main": [
+        [
+          {
+            "node": "GET veo3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create veo3": {
+      "main": [
+        [
+          {
+            "node": "Wait veo3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Get GPT-image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create GPT-image": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Revised Prompt Ai agent",
+            "type": "ai_outputParser",
+            "index": 0
+          },
+          {
+            "node": "Initial Prompt AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Revised Prompt Ai agent",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Initial Prompt AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Revised Prompt Ai agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Initial Prompt AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial Prompt AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Set Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inspirations": {
+      "main": [
+        [
+          {
+            "node": "Initial Prompt AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Approval1 for veo3": {
+      "main": [
+        [
+          {
+            "node": "Create veo3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "GPYhtuSJoZCGeGYj"
+  },
+  "versionId": "8cdda4bb-ee94-49ca-bbe2-dff527680c08",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ccc44dbde86fe436840d8c65ec0aef1e6eb8ad8713f0a7d233dfa91e88c042aa"
+  },
+  "id": "GPYhtuSJoZCGeGYj",
+  "tags": []
+}
