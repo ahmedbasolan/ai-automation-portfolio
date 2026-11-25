@@ -26,7 +26,6 @@
       "name": "Analyze image",
       "credentials": {
         "googlePalmApi": {
-          "id": "cCx8YhG6IL2PJuWt",
           "name": "Google Gemini(PaLM) Api account"
         }
       }
@@ -67,7 +66,6 @@
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
-          "id": "cCx8YhG6IL2PJuWt",
           "name": "Google Gemini(PaLM) Api account"
         }
       }
@@ -128,14 +126,14 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.cloudinary.com/v1_1/dmnqjgxgk/image/upload",
+        "url": "https://api.cloudinary.com/v1_1/YOUR_CLOUDINARY_CLOUD_NAME/image/upload",
         "sendBody": true,
         "contentType": "multipart-form-data",
         "bodyParameters": {
           "parameters": [
             {
               "name": "upload_preset",
-              "value": "n8n_unsigned"
+              "value": "YOUR_UNSIGNED_UPLOAD_PRESET"
             },
             {
               "parameterType": "formBinaryData",
@@ -181,7 +179,6 @@
       "retryOnFail": true,
       "credentials": {
         "googlePalmApi": {
-          "id": "cCx8YhG6IL2PJuWt",
           "name": "Google Gemini(PaLM) Api account"
         }
       }
@@ -208,7 +205,6 @@
       "executeOnce": false,
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "fpCgp77RSupoXD8A",
           "name": "Aaz Credentials"
         }
       }
@@ -249,14 +245,14 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.cloudinary.com/v1_1/dmnqjgxgk/video/upload",
+        "url": "https://api.cloudinary.com/v1_1/YOUR_CLOUDINARY_CLOUD_NAME/video/upload",
         "sendBody": true,
         "contentType": "multipart-form-data",
         "bodyParameters": {
           "parameters": [
             {
               "name": "upload_preset",
-              "value": "n8n_unsigned"
+              "value": "YOUR_UNSIGNED_UPLOAD_PRESET"
             },
             {
               "parameterType": "formBinaryData",
@@ -329,7 +325,6 @@
       "name": "video Instagram container ID",
       "credentials": {
         "facebookGraphApi": {
-          "id": "EPJZbTTzXz7pOhuT",
           "name": "Instagram Graph account"
         }
       }
@@ -369,7 +364,6 @@
       "name": "image Instagram container ID",
       "credentials": {
         "facebookGraphApi": {
-          "id": "EPJZbTTzXz7pOhuT",
           "name": "Instagram Graph account"
         }
       }
@@ -409,7 +403,6 @@
       "name": "Instagram video",
       "credentials": {
         "facebookGraphApi": {
-          "id": "EPJZbTTzXz7pOhuT",
           "name": "Instagram Graph account"
         }
       }
@@ -449,7 +442,6 @@
       "name": "Instagram image",
       "credentials": {
         "facebookGraphApi": {
-          "id": "EPJZbTTzXz7pOhuT",
           "name": "Instagram Graph account"
         }
       }
@@ -491,7 +483,6 @@
       "name": "video Facebook container ID1",
       "credentials": {
         "facebookGraphApi": {
-          "id": "DdM7wpQnXBlGkRCW",
           "name": "Facebook Graph credentials"
         }
       }
@@ -531,7 +522,6 @@
       "name": "Facebook video",
       "credentials": {
         "facebookGraphApi": {
-          "id": "EPJZbTTzXz7pOhuT",
           "name": "Instagram Graph account"
         }
       },
@@ -699,7 +689,6 @@
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
-          "id": "5FgvJnDGF5tUyTT3",
           "name": "OpenAi account"
         }
       }
@@ -738,7 +727,7 @@
           "parameters": [
             {
               "name": "upload_preset",
-              "value": "n8n_unsigned"
+              "value": "YOUR_UNSIGNED_UPLOAD_PRESET"
             },
             {
               "name": "Download",
@@ -809,7 +798,6 @@
       "name": "Google Drive Trigger1",
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "fpCgp77RSupoXD8A",
           "name": "Aaz Credentials"
         }
       }
@@ -853,7 +841,6 @@
       "name": "image Facebook container ID",
       "credentials": {
         "facebookGraphApi": {
-          "id": "DdM7wpQnXBlGkRCW",
           "name": "Facebook Graph credentials"
         }
       }
@@ -1137,8 +1124,7 @@
   },
   "versionId": "2007f839-944e-44f2-b704-637688587ae0",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "ccc44dbde86fe436840d8c65ec0aef1e6eb8ad8713f0a7d233dfa91e88c042aa"
+    "templateCredsSetupCompleted": true
   },
   "id": "4EXHp7mzZPJjiUqt",
   "tags": [

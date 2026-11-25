@@ -48,7 +48,6 @@
       "name": "get_availability",
       "credentials": {
         "googleCalendarOAuth2Api": {
-          "id": "rQFW7M9zlDloja7L",
           "name": "Google Calendar account"
         }
       }
@@ -88,7 +87,6 @@
       "name": "create_appointment",
       "credentials": {
         "googleCalendarOAuth2Api": {
-          "id": "rQFW7M9zlDloja7L",
           "name": "Google Calendar account"
         }
       }
@@ -219,7 +217,6 @@
       "name": "log_patient_details",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "n6Ev9o1gP8pRTY6A",
           "name": "Google Sheets account"
         }
       }
@@ -260,7 +257,6 @@
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
-          "id": "5FgvJnDGF5tUyTT3",
           "name": "OpenAi account"
         }
       }
@@ -364,8 +360,7 @@
   },
   "versionId": "b62ede5b-c6ae-4417-9fd8-c662ac85e286",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "ccc44dbde86fe436840d8c65ec0aef1e6eb8ad8713f0a7d233dfa91e88c042aa"
+    "templateCredsSetupCompleted": true
   },
   "id": "akqfgtu7oBVnRGoL",
   "tags": []

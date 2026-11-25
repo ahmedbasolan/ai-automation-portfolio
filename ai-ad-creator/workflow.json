@@ -21,7 +21,6 @@
       "webhookId": "24fe4b39-3325-4bee-9a5e-842c4ec9b7b2",
       "credentials": {
         "telegramApi": {
-          "id": "D1tiYGpexCStv93B",
           "name": "Telegram account"
         }
       }
@@ -65,7 +64,6 @@
       "name": "Analyze image",
       "credentials": {
         "openAiApi": {
-          "id": "5FgvJnDGF5tUyTT3",
           "name": "OpenAi account"
         }
       }
@@ -129,7 +127,6 @@
       "webhookId": "abc6e4d6-519b-4dc9-b7df-b8ec51187e26",
       "credentials": {
         "telegramApi": {
-          "id": "D1tiYGpexCStv93B",
           "name": "Telegram account"
         }
       }
@@ -205,7 +202,6 @@
       "webhookId": "8a1930df-d8df-4fee-bc33-035009d9ab3b",
       "credentials": {
         "telegramApi": {
-          "id": "D1tiYGpexCStv93B",
           "name": "Telegram account"
         }
       }
@@ -282,7 +278,6 @@
       "webhookId": "d03afa68-8a5a-4d11-b97a-9031262c02d7",
       "credentials": {
         "telegramApi": {
-          "id": "D1tiYGpexCStv93B",
           "name": "Telegram account"
         }
       }
@@ -305,7 +300,6 @@
       "webhookId": "f3196370-fda9-4b69-962a-7abf372525a2",
       "credentials": {
         "telegramApi": {
-          "id": "D1tiYGpexCStv93B",
           "name": "Telegram account"
         }
       }
@@ -328,7 +322,6 @@
       "webhookId": "c6427bdb-8621-4924-b5b0-44f53a7847a7",
       "credentials": {
         "telegramApi": {
-          "id": "D1tiYGpexCStv93B",
           "name": "Telegram account"
         }
       }
@@ -426,7 +419,6 @@
       "retryOnFail": true,
       "credentials": {
         "httpHeaderAuth": {
-          "id": "b8BmJ0WXFpwSUQgX",
           "name": "Kie AI Credentials"
         }
       }
@@ -457,7 +449,6 @@
       "name": "GET veo3",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "b8BmJ0WXFpwSUQgX",
           "name": "Kie AI Credentials"
         }
       }
@@ -497,7 +488,6 @@
       "name": "Create veo3",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "b8BmJ0WXFpwSUQgX",
           "name": "Kie AI Credentials"
         }
       }
@@ -537,7 +527,6 @@
       "name": "Create GPT-image",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "b8BmJ0WXFpwSUQgX",
           "name": "Kie AI Credentials"
         }
       }
@@ -587,7 +576,6 @@
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
-          "id": "5FgvJnDGF5tUyTT3",
           "name": "OpenAi account"
         }
       }
@@ -731,7 +719,6 @@
       "webhookId": "abc6e4d6-519b-4dc9-b7df-b8ec51187e26",
       "credentials": {
         "telegramApi": {
-          "id": "D1tiYGpexCStv93B",
           "name": "Telegram account"
         }
       }
@@ -757,7 +744,6 @@
       "name": "OpenAI Chat Model1",
       "credentials": {
         "openAiApi": {
-          "id": "5FgvJnDGF5tUyTT3",
           "name": "OpenAi account"
         }
       }
@@ -1086,8 +1072,7 @@
   },
   "versionId": "8cdda4bb-ee94-49ca-bbe2-dff527680c08",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "ccc44dbde86fe436840d8c65ec0aef1e6eb8ad8713f0a7d233dfa91e88c042aa"
+    "templateCredsSetupCompleted": true
   },
   "id": "GPYhtuSJoZCGeGYj",
   "tags": []

@@ -21,7 +21,6 @@
       "webhookId": "24fe4b39-3325-4bee-9a5e-842c4ec9b7b2",
       "credentials": {
         "telegramApi": {
-          "id": "D1tiYGpexCStv93B",
           "name": "Telegram account"
         }
       }
@@ -65,7 +64,6 @@
       "name": "Analyze image",
       "credentials": {
         "openAiApi": {
-          "id": "5FgvJnDGF5tUyTT3",
           "name": "OpenAi account"
         }
       }
@@ -89,7 +87,6 @@
       "webhookId": "d03afa68-8a5a-4d11-b97a-9031262c02d7",
       "credentials": {
         "telegramApi": {
-          "id": "D1tiYGpexCStv93B",
           "name": "Telegram account"
         }
       }
@@ -153,7 +150,6 @@
       "name": "Get GPT-image",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "b8BmJ0WXFpwSUQgX",
           "name": "Kie AI Credentials"
         }
       }
@@ -184,7 +180,6 @@
       "name": "GET veo3",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "b8BmJ0WXFpwSUQgX",
           "name": "Kie AI Credentials"
         }
       }
@@ -232,7 +227,6 @@
       "name": "Create veo3",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "b8BmJ0WXFpwSUQgX",
           "name": "Kie AI Credentials"
         }
       }
@@ -272,7 +266,6 @@
       "name": "Create GPT-image",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "b8BmJ0WXFpwSUQgX",
           "name": "Kie AI Credentials"
         }
       }
@@ -315,7 +308,6 @@
       "webhookId": "a656e5e3-06c7-41b8-a6e6-e22ba5d48af4",
       "credentials": {
         "telegramApi": {
-          "id": "D1tiYGpexCStv93B",
           "name": "Telegram account"
         }
       }
@@ -388,7 +380,6 @@
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
-          "id": "5FgvJnDGF5tUyTT3",
           "name": "OpenAi account"
         }
       }
@@ -722,8 +713,7 @@
   },
   "versionId": "4b75f0a9-e2b8-47c3-8b04-4293f1f6fae2",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "ccc44dbde86fe436840d8c65ec0aef1e6eb8ad8713f0a7d233dfa91e88c042aa"
+    "templateCredsSetupCompleted": true
   },
   "id": "966ZGnBk2PfVz0v5",
   "tags": []

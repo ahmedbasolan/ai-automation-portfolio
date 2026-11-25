@@ -31,9 +31,9 @@ Similar creative-pipeline shape to the Ad Creator workflow, tuned specifically f
 
 - n8n (orchestration)
 - Telegram (control interface)
-- OpenAI (vision analysis, prompt-generation agent, GPT-Image)
-- Google Veo3 (AI video generation, polled asynchronously)
+- OpenAI (vision analysis, prompt-generation agent)
+- Kie.ai API for generation: GPT-4o image and Google Veo3 video, both polled asynchronously
 
 ## Notes on this repo
 
-Telegram chat references are resolved at runtime via expressions, not static values. The Telegram bot token itself has been replaced with a placeholder (`YOUR_TELEGRAM_BOT_TOKEN`) — you'll need your own bot token and OpenAI/Veo3 credentials to run it.
+Telegram chat references are resolved at runtime via expressions, not static values. The Telegram bot token itself has been replaced with a placeholder (`YOUR_TELEGRAM_BOT_TOKEN`) — you'll need your own bot token, an OpenAI credential, and a Kie.ai API key (an n8n header-auth credential named "Kie AI Credentials") to run it.
