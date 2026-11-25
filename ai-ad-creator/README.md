@@ -37,9 +37,9 @@ The approval step matters: nothing renders (which costs time and generation cred
 
 - n8n (orchestration)
 - Telegram (control interface — trigger, approval prompts, delivery)
-- OpenAI (vision analysis, creative-direction agent, GPT-Image generation)
-- Google Veo3 (AI video generation, polled asynchronously)
+- OpenAI (vision analysis, creative-direction agent)
+- Kie.ai API for generation: GPT-4o image and Google Veo3 video, both polled asynchronously
 
 ## Notes on this repo
 
-Telegram chat references are resolved at runtime via expressions, not static values. The original export did have a live Telegram bot token hardcoded directly into a couple of URLs — that's been replaced with `YOUR_TELEGRAM_BOT_TOKEN`. You'll need your own Telegram bot token and OpenAI/Veo3 credentials configured in n8n to run it.
+Telegram chat references are resolved at runtime via expressions, not static values. The original export did have a live Telegram bot token hardcoded directly into a couple of URLs — that's been replaced with `YOUR_TELEGRAM_BOT_TOKEN`. You'll need your own Telegram bot token, an OpenAI credential, and a Kie.ai API key (an n8n header-auth credential named "Kie AI Credentials") to run it.

@@ -37,7 +37,6 @@
       "name": "Analyze image",
       "credentials": {
         "openAiApi": {
-          "id": "5FgvJnDGF5tUyTT3",
           "name": "OpenAi account"
         }
       }
@@ -78,7 +77,6 @@
       "name": "Get input logo",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "n6Ev9o1gP8pRTY6A",
           "name": "Google Sheets account"
         }
       }
@@ -121,7 +119,6 @@
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
-          "id": "5FgvJnDGF5tUyTT3",
           "name": "OpenAi account"
         }
       }
@@ -232,7 +229,6 @@
       "name": "GET veo",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "b8BmJ0WXFpwSUQgX",
           "name": "Kie AI Credentials"
         }
       }
@@ -258,7 +254,6 @@
       "name": "Create veo4",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "b8BmJ0WXFpwSUQgX",
           "name": "Kie AI Credentials"
         }
       }
@@ -356,7 +351,6 @@
       "name": "Update row in sheet",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "n6Ev9o1gP8pRTY6A",
           "name": "Google Sheets account"
         }
       }
@@ -604,8 +598,7 @@
   },
   "versionId": "282f7b87-7b9e-4a7b-9c17-0bc7f0b9b512",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "ccc44dbde86fe436840d8c65ec0aef1e6eb8ad8713f0a7d233dfa91e88c042aa"
+    "templateCredsSetupCompleted": true
   },
   "id": "ghYWPcrvp916dTRl",
   "tags": []

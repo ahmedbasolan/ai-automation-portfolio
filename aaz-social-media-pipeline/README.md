@@ -33,8 +33,11 @@ Media type determines the path: images go through one container-creation flow, v
 - Google Drive (trigger + file download)
 - Google Gemini (multimodal image/video analysis)
 - OpenAI (caption/hook generation via LangChain agent, structured output)
+- Cloudinary (hosts each file at a public URL, which the Graph API needs to fetch the media)
 - Facebook Graph API (Instagram + Facebook publishing)
 
 ## Notes on this repo
 
-Sanitized of the original Drive folder ID and the real Instagram Business/Facebook Page IDs — replace `YOUR_DRIVE_FOLDER_ID`, `YOUR_INSTAGRAM_BUSINESS_ID`, and `YOUR_FACEBOOK_PAGE_ID` with your own before running it, and connect your own Google/Meta/OpenAI credentials.
+Sanitized of the original Drive folder ID, the real Instagram Business/Facebook Page IDs and the Cloudinary account. Replace `YOUR_DRIVE_FOLDER_ID`, `YOUR_INSTAGRAM_BUSINESS_ID`, `YOUR_FACEBOOK_PAGE_ID`, `YOUR_CLOUDINARY_CLOUD_NAME` and `YOUR_UNSIGNED_UPLOAD_PRESET` with your own before running it, and connect your own Google/Meta/OpenAI credentials.
+
+An unsigned upload preset accepts uploads from anyone who knows the cloud name and preset name, so keep both out of anything public, or restrict the preset in Cloudinary (allowed formats, size limit, folder).

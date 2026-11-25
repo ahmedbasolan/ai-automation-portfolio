@@ -30,8 +30,8 @@ Sheet-driven rather than chat-driven: rows represent a queue, and the workflow p
 - n8n (orchestration)
 - Google Sheets (job queue + status/output tracking)
 - OpenAI (vision analysis + creative-direction agent)
-- Google Veo (AI video generation)
+- Kie.ai API for Google Veo video generation, polled asynchronously
 
 ## Notes on this repo
 
-Sanitized of the original Google Sheet ID, and of a real brand name that was hardcoded into an example creative-direction payload (replaced with a generic "Example Brand" placeholder). Replace `YOUR_GOOGLE_SHEET_ID` with your own, and connect your own Google/OpenAI/Veo credentials.
+Sanitized of the original Google Sheet ID, and of a real brand name that was hardcoded into an example creative-direction payload (replaced with a generic "Example Brand" placeholder). Replace `YOUR_GOOGLE_SHEET_ID` with your own, and connect your own Google and OpenAI credentials plus a Kie.ai API key (an n8n header-auth credential named "Kie AI Credentials").

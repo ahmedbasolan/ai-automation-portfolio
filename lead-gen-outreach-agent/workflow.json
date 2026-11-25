@@ -49,7 +49,6 @@
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
-          "id": "5FgvJnDGF5tUyTT3",
           "name": "OpenAi account"
         }
       }
@@ -133,7 +132,6 @@
       "name": "Google Sheets Trigger",
       "credentials": {
         "googleSheetsTriggerOAuth2Api": {
-          "id": "3QUwggUo8TnFSrug",
           "name": "Google Sheets Trigger account"
         }
       }
@@ -586,7 +584,6 @@
       "name": "Append row in sheet",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "n6Ev9o1gP8pRTY6A",
           "name": "Google Sheets account"
         }
       }
@@ -637,7 +634,6 @@
       "name": "Get row(s) in sheet",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "n6Ev9o1gP8pRTY6A",
           "name": "Google Sheets account"
         }
       },
@@ -686,7 +682,6 @@
       "webhookId": "b7a75d30-5e76-4a76-ace8-0bda71c1bf9b",
       "credentials": {
         "gmailOAuth2": {
-          "id": "KABZh3rzyMn0Bghb",
           "name": "Gmail account"
         }
       },
@@ -729,7 +724,6 @@
       "name": "OpenAI Chat Model1",
       "credentials": {
         "openAiApi": {
-          "id": "5FgvJnDGF5tUyTT3",
           "name": "OpenAi account"
         }
       }
@@ -754,7 +748,6 @@
       "webhookId": "607031a0-1c5e-4fe6-ae3c-38c532f3805e",
       "credentials": {
         "gmailOAuth2": {
-          "id": "KABZh3rzyMn0Bghb",
           "name": "Gmail account"
         }
       }
@@ -1133,8 +1126,7 @@
   },
   "versionId": "e92d74a8-33f1-435c-b2d8-c227b912b91d",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "ccc44dbde86fe436840d8c65ec0aef1e6eb8ad8713f0a7d233dfa91e88c042aa"
+    "templateCredsSetupCompleted": true
   },
   "id": "3lCGBYkekH5HpqyL",
   "tags": []
